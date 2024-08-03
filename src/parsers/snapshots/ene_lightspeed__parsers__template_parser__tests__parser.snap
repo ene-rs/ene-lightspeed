@@ -1,0 +1,83 @@
+---
+source: src/parsers/template_parser.rs
+expression: template_entity
+---
+Ok(
+    TemplateEntity {
+        entity_content: [
+            Static {
+                content: "\nuse serde::Serialize;\nuse serde::Deserialize;\nuse uuid::Uuid;\nuse crate::error::Error;\nuse crate::models::PaginatedResult;\nuse serde::Serializer;\nuse crate::controllers::entity_name_controller::{AddEntityNamePayload, UpdateEntityNamePayload};\n\n\n#[derive(Debug, Clone, Serialize, Deserialize)]\n#[serde(rename_all = \"camelCase\")]\npub struct EntityName {",
+                start: 18,
+                end: 370,
+            },
+            Attribute {
+                content: "\n    pub attribute_name: AttributeType,\n    pub attribute2_name: Attribute2Type,",
+                start: 370,
+                end: 511,
+            },
+            Static {
+                content: "\n}\n\nimpl EntityName {\n    pub fn new(payload: AddEntityNamePayload) -> Result<Self, Error> {\n        Ok(Self {\n            primary_key: payload.primary_key,",
+                start: 511,
+                end: 667,
+            },
+            Attribute {
+                content: "\n            attribute_name: payload.attribute_name,\n            attribute2_name: payload.attribute2_name,",
+                start: 667,
+                end: 845,
+            },
+            Static {
+                content: "\n        })\n    }\n\n    pub fn update(payload: UpdateEntityNamePayload) -> Result<Self, Error> {\n        Ok(Self {\n            primary_key: payload.primary_key,",
+                start: 845,
+                end: 1004,
+            },
+            Attribute {
+                content: "\n            attribute_name: payload.attribute_name,\n            attribute2_name: payload.attribute2_name,",
+                start: 1004,
+                end: 1182,
+            },
+            Static {
+                content: "\n        })\n    }\n}\n\n#[derive(Debug, Clone, Serialize, Deserialize)]\n#[serde(rename_all = \"camelCase\")]\npub struct EntityNameFilterAttributes {\n    page: Option<i32>,\n    page_size: Option<i32>,",
+                start: 1182,
+                end: 1376,
+            },
+            Filter {
+                content: [
+                    FilterAttribute {
+                        content: "\n    filter_attribute_name: Option<FilterAttributeType>,\n    filter2_attribute_name: Option<Filter2AttributeType>,",
+                        start: 1400,
+                        end: 1584,
+                    },
+                ],
+            },
+            Static {
+                content: "\n}\n\nimpl EntityNameFilterAttributes {",
+                start: 1611,
+                end: 1648,
+            },
+            Filter {
+                content: [
+                    Static {
+                        content: "\n    fn is_most_specific_filter_attribute_name_filter(&self) -> bool {",
+                        start: 1671,
+                        end: 1741,
+                    },
+                    FilterAttribute {
+                        content: "\n        self.filter_attribute_name.is_some() && self.filter2_attribute_name.is_some()",
+                        start: 1741,
+                        end: 1905,
+                    },
+                    Static {
+                        content: "\n    }",
+                        start: 1905,
+                        end: 1911,
+                    },
+                ],
+            },
+            Static {
+                content: "\n\n}",
+                start: 1938,
+                end: 1941,
+            },
+        ],
+    },
+)

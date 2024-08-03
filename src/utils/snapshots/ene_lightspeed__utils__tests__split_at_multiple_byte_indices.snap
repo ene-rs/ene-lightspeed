@@ -1,0 +1,10 @@
+---
+source: src/utils/mod.rs
+expression: result
+---
+[
+    "this",
+    " is ",
+    "a te",
+    "st to split at multiple byte indices",
+]

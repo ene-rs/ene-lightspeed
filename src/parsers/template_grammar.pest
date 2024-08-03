@@ -1,0 +1,48 @@
+WHITESPACE = _{ " " | "\t" | "\n" | "\r" }
+
+// `// #entity` indicates start of entity template. It is in a single line
+entity_template = _{WHITESPACE* ~ comment ~ WHITESPACE ~ "for each entity"}
+// `// entity`# indicates end of entity template. It is in a single line
+entity_template_end = _{WHITESPACE* ~ comment ~ WHITESPACE ~ "end for each entity"}
+entity_content = {(!entity_template_end ~ (attribute | filter | content))}
+
+content = {
+    (!(                
+        filter_template_end
+        | filter_template
+        | entity_template
+        | entity_template_end
+        | attribute_template
+        | attribute_template_end
+    )
+    ~ ANY             // then consume one character
+    )+
+}
+
+comment = _{"//"}
+
+filter_attribute_template = _{WHITESPACE* ~ comment ~ WHITESPACE ~ "for each filter attribute"}
+filter_attribute_template_end = _{WHITESPACE* ~ comment ~ WHITESPACE ~ "end for each filter attribute"}
+filter_attribute_content = ${(!filter_attribute_template_end ~ content)}
+filter_attribute = { filter_attribute_template ~ filter_attribute_content+ ~ filter_attribute_template_end }
+
+// `// #filter` indicates start of filter template. It is in a single line
+filter_template = _{WHITESPACE* ~ comment ~ WHITESPACE ~ "for each filter"}
+// `// filter`# indicates end of filter template. It is in a single line
+filter_template_end = _{WHITESPACE* ~ comment ~ WHITESPACE ~ "end for each filter"}
+filter_content = ${(!filter_template_end ~ (content | filter_attribute))}
+
+// `// #attribute` indicates start of attribute template. It is in a single line
+attribute_template = _{WHITESPACE* ~ comment ~ WHITESPACE ~ "for each attribute" }
+// `// attribute`# indicates end of attribute template. It is in a single line
+attribute_template_end = _{WHITESPACE* ~ comment ~ WHITESPACE ~ "end for each attribute"}
+attribute_content = {(!attribute_template_end ~ content)}
+// The attribute template is the content between `// #attribute` and `// attribute#`
+attribute = ${ attribute_template ~ attribute_content+ ~ attribute_template_end }
+
+// The filter template is the string between `// #filter` and `// filter#`
+filter = { filter_template ~ filter_content+ ~ filter_template_end }
+
+// The entity template is the content between `// #entity` and `// entity#`
+// You can have attribute templates and filter templates inside entity templates
+entity = ${ entity_template ~ entity_content+ ~ entity_template_end }
