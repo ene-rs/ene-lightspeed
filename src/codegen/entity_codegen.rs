@@ -1,7 +1,7 @@
-use crate::{
+/* use crate::{
     codegen::template_variables::TemplateVariable,
     models::entity::{AttributeType, Entity, FilterByAttributes, ForeignKey},
-    parsers::template_parser::{FilterContent, TemplateEntity, TemplateEntityContent},
+    parsers::template_parser::{Filter, FilterContent, TemplateEntity, TemplateEntityContent},
 };
 
 use super::{
@@ -25,19 +25,19 @@ pub fn entity_codegen(
             TemplateEntityContent::Attribute { content, .. } => {
                 code.push_str(&attribute_code_gen(entity, entities, content)?);
             }
-            TemplateEntityContent::Filter { content } => {
-                code.push_str(&filter_code_gen(entity, entities, content)?);
+            TemplateEntityContent::Filter { filters } => {
+                code.push_str(&filter_code_gen(entity, entities, filters)?);
             }
         }
     }
 
     let entity_name_plural =
-        find_template_variable_in_content(&code, TemplateVariable::EntityNamePlural);
+        find_template_variable_in_content(&code, TemplateVariable::Entities);
 
     code = replace_variable(&code, entity_name_plural, &entity.semantics.plural);
 
 
-    let entity_name = find_template_variable_in_content(&code, TemplateVariable::EntityName);
+    let entity_name = find_template_variable_in_content(&code, TemplateVariable::Entity);
     code = replace_variable(&code, entity_name, entity.name.as_str());
 
 
@@ -107,21 +107,7 @@ fn attribute_code_gen(
                     Ok(format!("{}{}{}", 
                     attribute_name_naming_convention.transform_string_to_naming_convention(attribute_name),
                     attribute_name_separator,
-                match attribute_type {
-                    AttributeType::Type(type_name) => {
-                        attribute_type_naming_convention.transform_string_to_naming_convention(type_name)
-                    }
-                    AttributeType::ForeignKey(ForeignKey{entity_name, attribute_name}) => {
-                        let foreign_key_entity = entities.iter().find(|entity| entity.name == *entity_name).expect(&format!("Foreign key entity {} is not present in the entities", entity_name));
-                        let foreign_key_attribute: &AttributeType = foreign_key_entity.attributes.get(attribute_name).expect(&format!("Foreign key attribute {} is not present in the attributes of {}", attribute_name, entity_name));
-                        match foreign_key_attribute {
-                            AttributeType::Type(type_name) => {
-                                attribute_type_naming_convention.transform_string_to_naming_convention(type_name)
-                            }
-                            _ => bail!("nested foreign keys are not allowed for now. Foreign key {} in entity {} is a nested foreign key", attribute_name, entity_name)
-                        }
-                    }
-                }))
+                    attribute_type_naming_convention.transform_string_to_naming_convention(&get_attribute_type(attribute_type, entities)?)))
                 }).collect::<anyhow::Result<Vec<String>>>()?.join(&attributes_separator) +
                 &content[*attribute_type2_idx + attribute_type2.len()..]
             )
@@ -170,7 +156,7 @@ fn attribute_code_gen(
 fn filter_code_gen(
     entity: &Entity,
     entities: &Vec<Entity>,
-    content: &Vec<FilterContent>,
+    filters: &Vec<Filter>,
 ) -> anyhow::Result<String> {
     let mut code = String::new();
     for filter_by in entity.get_filter_by_attributes().iter() {
@@ -395,3 +381,4 @@ mod tests {
         insta::assert_debug_snapshot!(code);
     }
 }
+ */

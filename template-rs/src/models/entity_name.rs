@@ -45,20 +45,37 @@ impl EntityName {
 pub struct EntityNameFilterAttributes {
 
     // for each filter
-    // for each filter attribute
+    //    filter
+    //       for each filter attribute
     filter_attribute_name: Option<FilterAttributeType>,
     filter2_attribute_name: Option<Filter2AttributeType>,
-    // end for each filter attribute
+    //       end for each filter attribute
+    //     end filter
+    //     filter
+    //        for each filter attribute
+    filter_attribute_name: Option<FilterAttributeType>,
+    filter2_attribute_name: Option<Filter2AttributeType>,
+    //         end for each filter attribute
+    //      end filter
     // end for each filter
 }
 
 impl EntityNameFilterAttributes {
     // for each filter
-    fn is_most_specific_filter_attribute_name_filter(&self) -> bool {
-        // for each filter attribute
+    //    filter
+    fn is_most_specific_attribute_filter_name_filter(&self) -> bool {
+        //    for each filter attribute
         self.filter_attribute_name.is_some() && self.filter2_attribute_name.is_some()
-        // end for each filter attribute
+        //     end for each filter attribute
     }
+    //     end filter
+    //     filter
+    fn is_most_specific_attribute_filter_name_filter(&self) -> bool {
+        //    for each filter attribute
+        self.filter_attribute_name.is_some() && self.filter2_attribute_name.is_some()
+        //    end for each filter attribute
+    }
+    //     end filter
     // end for each filter
 
 }

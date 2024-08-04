@@ -1,48 +1,206 @@
 WHITESPACE = _{ " " | "\t" | "\n" | "\r" }
-
-// `// #entity` indicates start of entity template. It is in a single line
-entity_template = _{WHITESPACE* ~ comment ~ WHITESPACE ~ "for each entity"}
-// `// entity`# indicates end of entity template. It is in a single line
-entity_template_end = _{WHITESPACE* ~ comment ~ WHITESPACE ~ "end for each entity"}
-entity_content = {(!entity_template_end ~ (attribute | filter | content))}
-
-content = {
-    (!(                
-        filter_template_end
-        | filter_template
-        | entity_template
-        | entity_template_end
-        | attribute_template
-        | attribute_template_end
-    )
-    ~ ANY             // then consume one character
-    )+
+static_content    = ${
+    (!(
+        end_of_filter_rep | 
+        start_of_filter_rep | 
+        start_of_entity_rep | 
+        end_of_entity_rep | 
+        start_of_attribute_rep | 
+        end_of_attribute_rep | 
+        start_of_filter | 
+        end_of_filter | 
+        attribute_name_snake_case |
+        attribute_type |
+        attribute2_name |
+        attribute2_type |
+        most_specific_attribute_filter_name |
+        most_specific_attribute_filter_type |
+        filter_attribute_name |
+        filter_attribute_type |
+        filter2_attribute_name |
+        filter2_attribute_type |
+        entity_name | 
+        entity_plural | 
+        primary_key
+) ~ (ANY) // then consume one character
+  )+
 }
 
-comment = _{"//"}
+content = {static_content | entity_name | entity_plural | primary_key}
 
-filter_attribute_template = _{WHITESPACE* ~ comment ~ WHITESPACE ~ "for each filter attribute"}
-filter_attribute_template_end = _{WHITESPACE* ~ comment ~ WHITESPACE ~ "end for each filter attribute"}
-filter_attribute_content = ${(!filter_attribute_template_end ~ content)}
-filter_attribute = { filter_attribute_template ~ filter_attribute_content+ ~ filter_attribute_template_end }
+comment    = _{ "//" }
 
-// `// #filter` indicates start of filter template. It is in a single line
-filter_template = _{WHITESPACE* ~ comment ~ WHITESPACE ~ "for each filter"}
-// `// filter`# indicates end of filter template. It is in a single line
-filter_template_end = _{WHITESPACE* ~ comment ~ WHITESPACE ~ "end for each filter"}
-filter_content = ${(!filter_template_end ~ (content | filter_attribute))}
+start_of_entity_rep = _{ WHITESPACE* ~ comment ~ " "* ~ "for each entity" }
+end_of_entity_rep   = _{ WHITESPACE* ~ comment ~ " "* ~ "end for each entity" }
+entity_content      = ${ (!end_of_entity_rep ~ (attribute_rep | filter_rep | content)) }
+entity_rep          = ${ start_of_entity_rep ~ entity_content+ ~ end_of_entity_rep }
 
-// `// #attribute` indicates start of attribute template. It is in a single line
-attribute_template = _{WHITESPACE* ~ comment ~ WHITESPACE ~ "for each attribute" }
-// `// attribute`# indicates end of attribute template. It is in a single line
-attribute_template_end = _{WHITESPACE* ~ comment ~ WHITESPACE ~ "end for each attribute"}
-attribute_content = {(!attribute_template_end ~ content)}
-// The attribute template is the content between `// #attribute` and `// attribute#`
-attribute = ${ attribute_template ~ attribute_content+ ~ attribute_template_end }
+start_of_attribute_rep            = _{ WHITESPACE* ~ comment ~ " "* ~ "for each attribute" }
+end_of_attribute_rep              = _{ WHITESPACE* ~ comment ~ " "* ~ "end for each attribute" }
+attribute_name_and_type_separator = ${ content }
+attributes_separator              = ${ content }
+attribute_name_twice_separator    = ${ content }
+attribute_names_and_types_present =  { content ~ attribute_name ~ attribute_name_and_type_separator ~ attribute_type ~ attributes_separator ~ attribute2_name ~ attribute_name_and_type_separator ~ attribute2_type ~ content }
+attribute_names_present           =  { content ~ attribute_name ~ attributes_separator ~ attribute2_name ~ content }
+attribute_names_twice_present     =  { content ~ attribute_name ~ attribute_name_twice_separator ~ attribute_name ~ attributes_separator ~ attribute2_name ~ attribute_name_twice_separator ~ attribute2_name ~ content }
+attribute_content                 = ${ (!end_of_attribute_rep ~ (attribute_names_and_types_present | attribute_names_present | attribute_names_twice_present)) }
+attribute_rep                     = ${ start_of_attribute_rep ~ attribute_content ~ end_of_attribute_rep }
 
-// The filter template is the string between `// #filter` and `// filter#`
-filter = { filter_template ~ filter_content+ ~ filter_template_end }
 
-// The entity template is the content between `// #entity` and `// entity#`
-// You can have attribute templates and filter templates inside entity templates
-entity = ${ entity_template ~ entity_content+ ~ entity_template_end }
+start_of_filter_attribute_rep = _{ WHITESPACE* ~ comment ~ " "* ~ "for each filter attribute" }
+end_of_filter_attribute_rep   = _{ WHITESPACE* ~ comment ~ " "* ~ "end for each filter attribute" }
+content_with_msfa = ${content | most_specific_attribute_filter_name | most_specific_attribute_filter_type}
+filter_attribute_name_and_type_separator = ${ content_with_msfa }
+filter_attributes_separator              = ${ content_with_msfa }
+filter_attribute_names_and_types_present =  ${ content_with_msfa ~ filter_attribute_name ~ filter_attribute_name_and_type_separator ~ filter_attribute_type ~ filter_attributes_separator ~ filter2_attribute_name ~ filter_attribute_name_and_type_separator ~ filter2_attribute_type ~ content_with_msfa }
+filter_attribute_names_present           =  ${ content_with_msfa ~ filter_attribute_name ~ filter_attributes_separator ~ filter2_attribute_name ~ content_with_msfa }
+filter_attribute_name_twice_separator    = ${ content_with_msfa }
+filter_attribute_names_twice_present     =  ${ content_with_msfa ~ filter_attribute_name ~ filter_attribute_name_twice_separator ~ filter_attribute_name ~ filter_attributes_separator ~ filter2_attribute_name ~ filter_attribute_name_twice_separator ~ filter2_attribute_name ~ content_with_msfa }
+filter_attribute_content                 = ${ (!end_of_filter_attribute_rep ~ (filter_attribute_names_and_types_present | filter_attribute_names_present | filter_attribute_names_twice_present)) }
+filter_attribute_rep          = ${ start_of_filter_attribute_rep ~ filter_attribute_content ~ end_of_filter_attribute_rep }
+
+
+start_of_filter = _{ WHITESPACE* ~ comment ~ " "* ~ "filter" }
+end_of_filter   = _{ WHITESPACE* ~ comment ~ " "* ~ "end filter" }
+filter_body     = ${ (!end_of_filter ~ (content_with_msfa | filter_attribute_rep)) }
+filter          = ${ start_of_filter ~ filter_body+ ~ end_of_filter }
+
+start_of_filter_rep = _{ WHITESPACE* ~ comment ~ " "* ~ "for each filter" }
+end_of_filter_rep   = _{ WHITESPACE* ~ comment ~ " "* ~ "end for each filter" }
+filter_separator    = ${ content }
+consecutive_filters = ${ filter ~ filter }
+separated_filters = ${ filter ~ filter_separator ~ filter }
+filter_content      = ${ (!end_of_filter_rep ~ (consecutive_filters | separated_filters)) }
+filter_rep          = ${ start_of_filter_rep ~ filter_content ~ end_of_filter_rep }
+
+attribute_name                      = { attribute_name_kebab_case | attribute_name_lower_camel_case | attribute_name_upper_camel_case | attribute_name_shouty_kebab_case | attribute_name_shouty_snake_case | attribute_name_snake_case | attribute_name_title_case | attribute_name_train_case }
+attribute_type                      = { attribute_type_kebab_case | attribute_type_lower_camel_case | attribute_type_upper_camel_case | attribute_type_shouty_kebab_case | attribute_type_shouty_snake_case | attribute_type_snake_case | attribute_type_title_case | attribute_type_train_case }
+attribute2_name                     = { attribute2_name_kebab_case | attribute2_name_lower_camel_case | attribute2_name_upper_camel_case | attribute2_name_shouty_kebab_case | attribute2_name_shouty_snake_case | attribute2_name_snake_case | attribute2_name_title_case | attribute2_name_train_case }
+attribute2_type                     = { attribute2_type_kebab_case | attribute2_type_lower_camel_case | attribute2_type_upper_camel_case | attribute2_type_shouty_kebab_case | attribute2_type_shouty_snake_case | attribute2_type_snake_case | attribute2_type_title_case | attribute2_type_train_case }
+entity_name                         = { entity_name_kebab_case | entity_name_lower_camel_case | entity_name_upper_camel_case | entity_name_shouty_kebab_case | entity_name_shouty_snake_case | entity_name_snake_case | entity_name_title_case | entity_name_train_case }
+entity_plural                  = { entity_plural_kebab_case | entity_plural_lower_camel_case | entity_plural_upper_camel_case | entity_plural_shouty_kebab_case | entity_plural_shouty_snake_case | entity_plural_snake_case | entity_plural_title_case | entity_plural_train_case }
+primary_key                         = { primary_key_kebab_case | primary_key_lower_camel_case | primary_key_upper_camel_case | primary_key_shouty_kebab_case | primary_key_shouty_snake_case | primary_key_snake_case | primary_key_title_case | primary_key_train_case }
+most_specific_attribute_filter_name = { most_specific_attribute_filter_name_kebab_case | most_specific_attribute_filter_name_lower_camel_case | most_specific_attribute_filter_name_upper_camel_case | most_specific_attribute_filter_name_shouty_kebab_case | most_specific_attribute_filter_name_shouty_snake_case | most_specific_attribute_filter_name_snake_case | most_specific_attribute_filter_name_title_case | most_specific_attribute_filter_name_train_case }
+most_specific_attribute_filter_type = { most_specific_attribute_filter_type_kebab_case | most_specific_attribute_filter_type_lower_camel_case | most_specific_attribute_filter_type_upper_camel_case | most_specific_attribute_filter_type_shouty_kebab_case | most_specific_attribute_filter_type_shouty_snake_case | most_specific_attribute_filter_type_snake_case | most_specific_attribute_filter_type_title_case | most_specific_attribute_filter_type_train_case }
+filter_attribute_name               = { filter_attribute_name_kebab_case | filter_attribute_name_lower_camel_case | filter_attribute_name_upper_camel_case | filter_attribute_name_shouty_kebab_case | filter_attribute_name_shouty_snake_case | filter_attribute_name_snake_case | filter_attribute_name_title_case | filter_attribute_name_train_case }
+filter_attribute_type               = { filter_attribute_type_kebab_case | filter_attribute_type_lower_camel_case | filter_attribute_type_upper_camel_case | filter_attribute_type_shouty_kebab_case | filter_attribute_type_shouty_snake_case | filter_attribute_type_snake_case | filter_attribute_type_title_case | filter_attribute_type_train_case }
+filter2_attribute_name              = { filter2_attribute_name_kebab_case | filter2_attribute_name_lower_camel_case | filter2_attribute_name_upper_camel_case | filter2_attribute_name_shouty_kebab_case | filter2_attribute_name_shouty_snake_case | filter2_attribute_name_snake_case | filter2_attribute_name_title_case | filter2_attribute_name_train_case }
+filter2_attribute_type              = { filter2_attribute_type_kebab_case | filter2_attribute_type_lower_camel_case | filter2_attribute_type_upper_camel_case | filter2_attribute_type_shouty_kebab_case | filter2_attribute_type_shouty_snake_case | filter2_attribute_type_snake_case | filter2_attribute_type_title_case | filter2_attribute_type_train_case }
+
+attribute_name_kebab_case        = { "attribute-name" }
+attribute_name_lower_camel_case  = { "attributeName" }
+attribute_name_upper_camel_case  = { "AttributeName" }
+attribute_name_shouty_kebab_case = { "ATTRIBUTE-NAME" }
+attribute_name_shouty_snake_case = { "ATTRIBUTE_NAME" }
+attribute_name_snake_case        = { "attribute_name" }
+attribute_name_title_case        = { "Attribute Name" }
+attribute_name_train_case        = { "Attribute-Name" }
+
+attribute_type_kebab_case        = { "attribute-type" }
+attribute_type_lower_camel_case  = { "attributeType" }
+attribute_type_upper_camel_case  = { "AttributeType" }
+attribute_type_shouty_kebab_case = { "ATTRIBUTE-TYPE" }
+attribute_type_shouty_snake_case = { "ATTRIBUTE_TYPE" }
+attribute_type_snake_case        = { "attribute_type" }
+attribute_type_title_case        = { "Attribute Type" }
+attribute_type_train_case        = { "Attribute-Type" }
+
+attribute2_name_kebab_case        = { "attribute2-name" }
+attribute2_name_lower_camel_case  = { "attribute2Name" }
+attribute2_name_upper_camel_case  = { "Attribute2Name" }
+attribute2_name_shouty_kebab_case = { "ATTRIBUTE2-NAME" }
+attribute2_name_shouty_snake_case = { "ATTRIBUTE2_NAME" }
+attribute2_name_snake_case        = { "attribute2_name" }
+attribute2_name_title_case        = { "Attribute2 Name" }
+attribute2_name_train_case        = { "Attribute2-Name" }
+
+attribute2_type_kebab_case        = { "attribute2-type" }
+attribute2_type_lower_camel_case  = { "attribute2Type" }
+attribute2_type_upper_camel_case  = { "Attribute2Type" }
+attribute2_type_shouty_kebab_case = { "ATTRIBUTE2-TYPE" }
+attribute2_type_shouty_snake_case = { "ATTRIBUTE2_TYPE" }
+attribute2_type_snake_case        = { "attribute2_type" }
+attribute2_type_title_case        = { "Attribute2 Type" }
+attribute2_type_train_case        = { "Attribute2-Type" }
+
+entity_name_kebab_case        = { "entity-name" }
+entity_name_lower_camel_case  = { "entityName" }
+entity_name_upper_camel_case  = { "EntityName" }
+entity_name_shouty_kebab_case = { "ENTITY-NAME" }
+entity_name_shouty_snake_case = { "ENTITY_NAME" }
+entity_name_snake_case        = { "entity_name" }
+entity_name_title_case        = { "Entity Name" }
+entity_name_train_case        = { "Entity-Name" }
+
+entity_plural_kebab_case        = { "entity-plural" }
+entity_plural_lower_camel_case  = { "entityPlural" }
+entity_plural_upper_camel_case  = { "EntityPlural" }
+entity_plural_shouty_kebab_case = { "ENTITY-PLURAL" }
+entity_plural_shouty_snake_case = { "ENTITY_PLURAL" }
+entity_plural_snake_case        = { "entity_plural" }
+entity_plural_title_case        = { "Entity Plural" }
+entity_plural_train_case        = { "Entity-Plural" }
+
+primary_key_kebab_case        = { "primary-key" }
+primary_key_lower_camel_case  = { "primaryKey" }
+primary_key_upper_camel_case  = { "PrimaryKey" }
+primary_key_shouty_kebab_case = { "PRIMARY-KEY" }
+primary_key_shouty_snake_case = { "PRIMARY_KEY" }
+primary_key_snake_case        = { "primary_key" }
+primary_key_title_case        = { "Primary Key" }
+primary_key_train_case        = { "Primary-Key" }
+
+most_specific_attribute_filter_name_kebab_case        = { "most-specific-attribute-filter-name" }
+most_specific_attribute_filter_name_lower_camel_case  = { "mostSpecificAttributeFilterName" }
+most_specific_attribute_filter_name_upper_camel_case  = { "MostSpecificAttributeFilterName" }
+most_specific_attribute_filter_name_shouty_kebab_case = { "MOST-SPECIFIC-ATTRIBUTE-FILTER-NAME" }
+most_specific_attribute_filter_name_shouty_snake_case = { "MOST_SPECIFIC_ATTRIBUTE_FILTER_NAME" }
+most_specific_attribute_filter_name_snake_case        = { "most_specific_attribute_filter_name" }
+most_specific_attribute_filter_name_title_case        = { "Most Specific Attribute Filter Name" }
+most_specific_attribute_filter_name_train_case        = { "Most-Specific-Attribute-Filter-Name" }
+
+most_specific_attribute_filter_type_kebab_case        = { "most-specific-attribute-filter-type" }
+most_specific_attribute_filter_type_lower_camel_case  = { "mostSpecificAttributeFilterType" }
+most_specific_attribute_filter_type_upper_camel_case  = { "MostSpecificAttributeFilterType" }
+most_specific_attribute_filter_type_shouty_kebab_case = { "MOST-SPECIFIC-ATTRIBUTE-FILTER-TYPE" }
+most_specific_attribute_filter_type_shouty_snake_case = { "MOST_SPECIFIC_ATTRIBUTE_FILTER_TYPE" }
+most_specific_attribute_filter_type_snake_case        = { "most_specific_attribute_filter_type" }
+most_specific_attribute_filter_type_title_case        = { "Most Specific Attribute Filter Type" }
+most_specific_attribute_filter_type_train_case        = { "Most-Specific-Attribute-Filter-Type" }
+
+filter_attribute_name_kebab_case        = { "filter-attribute-name" }
+filter_attribute_name_lower_camel_case  = { "filterAttributeName" }
+filter_attribute_name_upper_camel_case  = { "FilterAttributeName" }
+filter_attribute_name_shouty_kebab_case = { "FILTER-ATTRIBUTE-NAME" }
+filter_attribute_name_shouty_snake_case = { "FILTER_ATTRIBUTE_NAME" }
+filter_attribute_name_snake_case        = { "filter_attribute_name" }
+filter_attribute_name_title_case        = { "Filter Attribute Name" }
+filter_attribute_name_train_case        = { "Filter-Attribute-Name" }
+
+filter_attribute_type_kebab_case        = { "filter-attribute-type" }
+filter_attribute_type_lower_camel_case  = { "filterAttributeType" }
+filter_attribute_type_upper_camel_case  = { "FilterAttributeType" }
+filter_attribute_type_shouty_kebab_case = { "FILTER-ATTRIBUTE-TYPE" }
+filter_attribute_type_shouty_snake_case = { "FILTER_ATTRIBUTE_TYPE" }
+filter_attribute_type_snake_case        = { "filter_attribute_type" }
+filter_attribute_type_title_case        = { "Filter Attribute Type" }
+filter_attribute_type_train_case        = { "Filter-Attribute-Type" }
+
+filter2_attribute_name_kebab_case        = { "filter2-attribute-name" }
+filter2_attribute_name_lower_camel_case  = { "filter2AttributeName" }
+filter2_attribute_name_upper_camel_case  = { "Filter2AttributeName" }
+filter2_attribute_name_shouty_kebab_case = { "FILTER2-ATTRIBUTE-NAME" }
+filter2_attribute_name_shouty_snake_case = { "FILTER2_ATTRIBUTE_NAME" }
+filter2_attribute_name_snake_case        = { "filter2_attribute_name" }
+filter2_attribute_name_title_case        = { "Filter2 Attribute Name" }
+filter2_attribute_name_train_case        = { "Filter2-Attribute-Name" }
+
+filter2_attribute_type_kebab_case        = { "filter2-attribute-type" }
+filter2_attribute_type_lower_camel_case  = { "filter2AttributeType" }
+filter2_attribute_type_upper_camel_case  = { "Filter2AttributeType" }
+filter2_attribute_type_shouty_kebab_case = { "FILTER2-ATTRIBUTE-TYPE" }
+filter2_attribute_type_shouty_snake_case = { "FILTER2_ATTRIBUTE_TYPE" }
+filter2_attribute_type_snake_case        = { "filter2_attribute_type" }
+filter2_attribute_type_title_case        = { "Filter2 Attribute Type" }
+filter2_attribute_type_train_case        = { "Filter2-Attribute-Type" }
+

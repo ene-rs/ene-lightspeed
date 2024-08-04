@@ -51,3 +51,13 @@ pub fn detect_naming_convention(s: &str) -> NamingConvention {
         panic!("Could not detect the naming convention used")
     }
 }
+
+#[cfg(test)]
+mod tests {
+
+    #[test]
+    fn experiment() {
+        let entity = "entity";
+        println!("naming_convention: {:?}", super::detect_naming_convention(entity));
+    }
+}

@@ -32,8 +32,8 @@ impl FromStr for TemplateVariable {
             "attribute_type" => Ok(TemplateVariable::AttributeType),
             "attribute2_name" => Ok(TemplateVariable::Attribute2Name),
             "attribute2_type" => Ok(TemplateVariable::Attribute2Type),
-            "entity_name" => Ok(TemplateVariable::EntityName),
-            "entity_name_plural" => Ok(TemplateVariable::EntityNamePlural),
+            "entity" => Ok(TemplateVariable::EntityName),
+            "entities" => Ok(TemplateVariable::EntityNamePlural),
             "primary_key" => Ok(TemplateVariable::PrimaryKey),
             "most_specific_filter_attribute_name" => {
                 Ok(TemplateVariable::MostSpecificFilterAttributeName)
@@ -75,6 +75,11 @@ pub fn find_template_variable_in_content(
 
 #[cfg(test)]
 mod tests {
+    use heck::{
+    ToKebabCase, ToLowerCamelCase, ToShoutyKebabCase, ToShoutySnakeCase, ToSnakeCase, ToTitleCase,
+    ToTrainCase, ToUpperCamelCase,
+};
+    use strum::IntoEnumIterator;
     use super::{find_template_variable_in_content, TemplateVariable};
 
     #[test]
@@ -83,5 +88,21 @@ mod tests {
         let entity_name_found =
             find_template_variable_in_content(with_entity_name, TemplateVariable::EntityName);
         assert!(entity_name_found.len() == 1);
+    }
+
+
+    #[test]
+    fn experiment() {
+        for template_variable in TemplateVariable::iter() {
+            println!("kebab case: {:?}", template_variable.to_string().to_kebab_case());
+            println!("lower camel case: {:?}", template_variable.to_string().to_lower_camel_case());
+            println!("upper camel case: {:?}", template_variable.to_string().to_upper_camel_case());
+            println!("shouty kebab case: {:?}", template_variable.to_string().to_shouty_kebab_case());
+            println!("shoute snake case: {:?}", template_variable.to_string().to_shouty_snake_case());
+            println!("snake case: {:?}", template_variable.to_string().to_snake_case());
+            println!("title case: {:?}", template_variable.to_string().to_title_case());
+            println!("train case: {:?}", template_variable.to_string().to_train_case());
+
+        }
     }
 }
