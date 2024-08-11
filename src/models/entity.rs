@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt::Display};
+use std::{collections::BTreeMap, fmt::Display};
 
 use anyhow::bail;
 use serde::{Deserialize, Serialize};
@@ -25,10 +25,38 @@ pub enum AttributeType {
     Type(String),
     ForeignKey(ForeignKey),
 }
+
+impl AttributeType {
+    pub fn get_attribute_type(&self, entities: &Vec<Entity>) -> anyhow::Result<String> {
+        match self {
+            AttributeType::Type(type_name) => Ok(type_name.clone()),
+            AttributeType::ForeignKey(ForeignKey {
+                entity_name,
+                attribute_name,
+            }) => {
+                let foreign_key_entity = entities
+                    .iter()
+                    .find(|entity| entity.name == *entity_name)
+                    .expect(&format!(
+                        "Foreign key entity {} is not present in the entities",
+                        entity_name
+                    ));
+                let foreign_key_attribute: &AttributeType = foreign_key_entity
+                    .attributes
+                    .get(attribute_name)
+                    .expect(&format!(
+                        "Foreign key attribute {} is not present in the attributes of {}",
+                        attribute_name, entity_name
+                    ));
+                foreign_key_attribute.get_attribute_type(entities)
+            }
+        }
+    }
+}
 #[derive(Serialize, Deserialize, Clone, Default)]
 pub struct Entity {
     pub name: String,
-    pub attributes: HashMap<AttributeName, AttributeType>,
+    pub attributes: BTreeMap<AttributeName, AttributeType>,
     pub primary_key: AttributeName,
     pub filter_by: Vec<FilterByAttributeNames>,
     pub unique_attributes: Vec<UniqueAttributes>,

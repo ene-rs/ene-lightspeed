@@ -75,12 +75,12 @@ pub fn find_template_variable_in_content(
 
 #[cfg(test)]
 mod tests {
-    use heck::{
-    ToKebabCase, ToLowerCamelCase, ToShoutyKebabCase, ToShoutySnakeCase, ToSnakeCase, ToTitleCase,
-    ToTrainCase, ToUpperCamelCase,
-};
-    use strum::IntoEnumIterator;
     use super::{find_template_variable_in_content, TemplateVariable};
+    use heck::{
+        ToKebabCase, ToLowerCamelCase, ToShoutyKebabCase, ToShoutySnakeCase, ToSnakeCase,
+        ToTitleCase, ToTrainCase, ToUpperCamelCase,
+    };
+    use strum::IntoEnumIterator;
 
     #[test]
     fn test_upper_camel_case() {
@@ -90,19 +90,41 @@ mod tests {
         assert!(entity_name_found.len() == 1);
     }
 
-
     #[test]
     fn experiment() {
         for template_variable in TemplateVariable::iter() {
-            println!("kebab case: {:?}", template_variable.to_string().to_kebab_case());
-            println!("lower camel case: {:?}", template_variable.to_string().to_lower_camel_case());
-            println!("upper camel case: {:?}", template_variable.to_string().to_upper_camel_case());
-            println!("shouty kebab case: {:?}", template_variable.to_string().to_shouty_kebab_case());
-            println!("shoute snake case: {:?}", template_variable.to_string().to_shouty_snake_case());
-            println!("snake case: {:?}", template_variable.to_string().to_snake_case());
-            println!("title case: {:?}", template_variable.to_string().to_title_case());
-            println!("train case: {:?}", template_variable.to_string().to_train_case());
-
+            println!(
+                "kebab case: {:?}",
+                template_variable.to_string().to_kebab_case()
+            );
+            println!(
+                "lower camel case: {:?}",
+                template_variable.to_string().to_lower_camel_case()
+            );
+            println!(
+                "upper camel case: {:?}",
+                template_variable.to_string().to_upper_camel_case()
+            );
+            println!(
+                "shouty kebab case: {:?}",
+                template_variable.to_string().to_shouty_kebab_case()
+            );
+            println!(
+                "shoute snake case: {:?}",
+                template_variable.to_string().to_shouty_snake_case()
+            );
+            println!(
+                "snake case: {:?}",
+                template_variable.to_string().to_snake_case()
+            );
+            println!(
+                "title case: {:?}",
+                template_variable.to_string().to_title_case()
+            );
+            println!(
+                "train case: {:?}",
+                template_variable.to_string().to_train_case()
+            );
         }
     }
 }

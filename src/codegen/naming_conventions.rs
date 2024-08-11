@@ -58,6 +58,9 @@ mod tests {
     #[test]
     fn experiment() {
         let entity = "entity";
-        println!("naming_convention: {:?}", super::detect_naming_convention(entity));
+        println!(
+            "naming_convention: {:?}",
+            super::detect_naming_convention(entity)
+        );
     }
 }
