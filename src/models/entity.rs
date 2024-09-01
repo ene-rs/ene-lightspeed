@@ -7,17 +7,18 @@ pub type AttributeName = String;
 pub type FilterByAttributeNames = Vec<AttributeName>;
 
 pub type FilterByAttributes = Vec<(AttributeName, AttributeType)>;
+pub type CompositeKey = Vec<(AttributeName, AttributeType)>;
 
-pub trait MostSpecificFilterAttributes {
-    fn get_most_specific_filter_attribute(&self) -> (AttributeName, AttributeType);
+pub trait RetrieveMostSpecificAttribute {
+    fn get_most_specific_attribute(&self) -> (AttributeName, AttributeType);
 }
 
-impl MostSpecificFilterAttributes for &FilterByAttributes {
-    fn get_most_specific_filter_attribute(&self) -> (AttributeName, AttributeType) {
+impl RetrieveMostSpecificAttribute for &Vec<(AttributeName, AttributeType)> {
+    fn get_most_specific_attribute(&self) -> (AttributeName, AttributeType) {
         self.last().unwrap().clone()
     }
 }
-pub type UniqueAttributes = Vec<AttributeName>;
+pub type UniqueAttributesNames = Vec<AttributeName>;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 #[serde(untagged)]
@@ -59,7 +60,7 @@ pub struct Entity {
     pub attributes: BTreeMap<AttributeName, AttributeType>,
     pub primary_key: AttributeName,
     pub filter_by: Vec<FilterByAttributeNames>,
-    pub unique_attributes: Vec<UniqueAttributes>,
+    pub unique_attributes: Vec<UniqueAttributesNames>,
     pub semantics: Semantics,
 }
 
@@ -185,6 +186,21 @@ impl Entity {
             filter_by_attributes.push(filter_by_attribute);
         }
         filter_by_attributes
+    }
+
+    pub fn get_composite_keys(&self) -> Vec<CompositeKey> {
+        let mut composite_keys = Vec::new();
+        for unique_attribute in &self.unique_attributes {
+            let mut composite_key = Vec::new();
+            for attribute_name in unique_attribute {
+                composite_key.push((
+                    attribute_name.clone(),
+                    self.attributes.get(attribute_name).unwrap().clone(),
+                ));
+            }
+            composite_keys.push(composite_key);
+        }
+        composite_keys
     }
 }
 

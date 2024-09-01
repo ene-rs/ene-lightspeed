@@ -13,8 +13,8 @@ static_content    = ${
         attribute_type |
         attribute2_name |
         attribute2_type |
-        most_specific_attribute_filter_name |
-        most_specific_attribute_filter_type |
+        most_specific_attribute_name |
+        most_specific_attribute_type |
         filter_attribute_name |
         filter_attribute_type |
         filter2_attribute_name |
@@ -32,7 +32,7 @@ comment    = _{ "//" }
 
 start_of_entity_rep = _{ WHITESPACE* ~ comment ~ " "* ~ "for each entity" }
 end_of_entity_rep   = _{ WHITESPACE* ~ comment ~ " "* ~ "end for each entity" }
-entity_content      = ${ (!end_of_entity_rep ~ (attribute_rep | filter_rep | content)) }
+entity_content      = ${ (!end_of_entity_rep ~ (attribute_rep | filter_rep | composite_key_rep | content)) }
 entity_rep          = ${ start_of_entity_rep ~ entity_content+ ~ end_of_entity_rep }
 
 start_of_attribute_rep            = _{ WHITESPACE* ~ comment ~ " "* ~ "for each attribute" }
@@ -49,7 +49,7 @@ attribute_rep                     = ${ start_of_attribute_rep ~ attribute_conten
 
 start_of_filter_attribute_rep = _{ WHITESPACE* ~ comment ~ " "* ~ "for each filter attribute" }
 end_of_filter_attribute_rep   = _{ WHITESPACE* ~ comment ~ " "* ~ "end for each filter attribute" }
-content_with_msfa = ${content | most_specific_attribute_filter_name | most_specific_attribute_filter_type}
+content_with_msfa = ${content | most_specific_attribute_name | most_specific_attribute_type}
 filter_attribute_name_and_type_separator = ${ content_with_msfa }
 filter_attributes_separator              = ${ content_with_msfa }
 filter_attribute_names_and_types_present =  ${ content_with_msfa ~ filter_attribute_name ~ filter_attribute_name_and_type_separator ~ filter_attribute_type ~ filter_attributes_separator ~ filter2_attribute_name ~ filter_attribute_name_and_type_separator ~ filter2_attribute_type ~ content_with_msfa }
@@ -73,6 +73,32 @@ separated_filters = ${ filter ~ filter_separator ~ filter }
 filter_content      = ${ (!end_of_filter_rep ~ (consecutive_filters | separated_filters)) }
 filter_rep          = ${ start_of_filter_rep ~ filter_content ~ end_of_filter_rep }
 
+
+start_of_composite_key_attribute_rep = _{ WHITESPACE* ~ comment ~ " "* ~ "for each composite key attribute" }
+end_of_composite_key_attribute_rep   = _{ WHITESPACE* ~ comment ~ " "* ~ "end for each composite key attribute" }
+composite_key_attribute_name_and_type_separator = ${ content_with_msfa }
+composite_key_attributes_separator              = ${ content_with_msfa }
+composite_key_attribute_names_and_types_present =  ${ content_with_msfa ~ composite_key_attribute_name ~ composite_key_attribute_name_and_type_separator ~ composite_key_attribute_type ~ composite_key_attributes_separator ~ composite2_key_attribute_name ~ composite_key_attribute_name_and_type_separator ~ composite2_key_attribute_type ~ content_with_msfa }
+composite_key_attribute_names_present           =  ${ content_with_msfa ~ composite_key_attribute_name ~ composite_key_attributes_separator ~ filter2_attribute_name ~ content_with_msfa }
+composite_key_attribute_name_twice_separator    = ${ content_with_msfa }
+composite_key_attribute_names_twice_present     =  ${ content_with_msfa ~ composite_key_attribute_name ~ composite_key_attribute_name_twice_separator ~ composite_key_attribute_name ~ composite_key_attributes_separator ~ composite2_key_attribute_name ~ composite_key_attribute_name_twice_separator ~ composite2_key_attribute_name ~ content_with_msfa }
+composite_key_attribute_content                 = ${ (!end_of_composite_key_attribute_rep ~ (composite_key_attribute_names_and_types_present | composite_key_attribute_names_present | composite_key_attribute_names_twice_present)) }
+composite_key_attribute_rep          = ${ start_of_composite_key_attribute_rep ~ composite_key_attribute_content ~ end_of_composite_key_attribute_rep }
+
+start_of_composite_key = _{ WHITESPACE* ~ comment ~ " "* ~ "composite key" }
+end_of_composite_key   = _{ WHITESPACE* ~ comment ~ " "* ~ "end composite key" }
+composite_key_body  = ${ (!end_of_composite_key ~ (content_with_msfa | composite_key_attribute_rep)) }
+composite_key          = ${ start_of_composite_key ~ composite_key_body+ ~ end_of_composite_key }
+
+start_of_composite_key_rep = _{ WHITESPACE* ~ comment ~ " "* ~ "for each composite key" }
+end_of_composite_key_rep   = _{ WHITESPACE* ~ comment ~ " "* ~ "end for each composite key" }
+composite_key_separator    = ${ content }
+consecutive_composite_keys = ${ composite_key ~ composite_key }
+separated_composite_keys = ${ composite_key ~ composite_key_separator ~ composite_key }
+composite_key_content      = ${ (!end_of_composite_key_rep ~ (consecutive_composite_keys | separated_composite_keys)) }
+composite_key_rep          = ${ start_of_composite_key_rep ~ composite_key_content ~ end_of_composite_key_rep }
+
+
 attribute_name                      = { attribute_name_kebab_case | attribute_name_lower_camel_case | attribute_name_upper_camel_case | attribute_name_shouty_kebab_case | attribute_name_shouty_snake_case | attribute_name_snake_case | attribute_name_title_case | attribute_name_train_case }
 attribute_type                      = { attribute_type_kebab_case | attribute_type_lower_camel_case | attribute_type_upper_camel_case | attribute_type_shouty_kebab_case | attribute_type_shouty_snake_case | attribute_type_snake_case | attribute_type_title_case | attribute_type_train_case }
 attribute2_name                     = { attribute2_name_kebab_case | attribute2_name_lower_camel_case | attribute2_name_upper_camel_case | attribute2_name_shouty_kebab_case | attribute2_name_shouty_snake_case | attribute2_name_snake_case | attribute2_name_title_case | attribute2_name_train_case }
@@ -80,12 +106,16 @@ attribute2_type                     = { attribute2_type_kebab_case | attribute2_
 entity_name                         = { entity_name_kebab_case | entity_name_lower_camel_case | entity_name_upper_camel_case | entity_name_shouty_kebab_case | entity_name_shouty_snake_case | entity_name_snake_case | entity_name_title_case | entity_name_train_case }
 entity_plural                  = { entity_plural_kebab_case | entity_plural_lower_camel_case | entity_plural_upper_camel_case | entity_plural_shouty_kebab_case | entity_plural_shouty_snake_case | entity_plural_snake_case | entity_plural_title_case | entity_plural_train_case }
 primary_key                         = { primary_key_kebab_case | primary_key_lower_camel_case | primary_key_upper_camel_case | primary_key_shouty_kebab_case | primary_key_shouty_snake_case | primary_key_snake_case | primary_key_title_case | primary_key_train_case }
-most_specific_attribute_filter_name = { most_specific_attribute_filter_name_kebab_case | most_specific_attribute_filter_name_lower_camel_case | most_specific_attribute_filter_name_upper_camel_case | most_specific_attribute_filter_name_shouty_kebab_case | most_specific_attribute_filter_name_shouty_snake_case | most_specific_attribute_filter_name_snake_case | most_specific_attribute_filter_name_title_case | most_specific_attribute_filter_name_train_case }
-most_specific_attribute_filter_type = { most_specific_attribute_filter_type_kebab_case | most_specific_attribute_filter_type_lower_camel_case | most_specific_attribute_filter_type_upper_camel_case | most_specific_attribute_filter_type_shouty_kebab_case | most_specific_attribute_filter_type_shouty_snake_case | most_specific_attribute_filter_type_snake_case | most_specific_attribute_filter_type_title_case | most_specific_attribute_filter_type_train_case }
+most_specific_attribute_name = { most_specific_attribute_name_kebab_case | most_specific_attribute_name_lower_camel_case | most_specific_attribute_name_upper_camel_case | most_specific_attribute_name_shouty_kebab_case | most_specific_attribute_name_shouty_snake_case | most_specific_attribute_name_snake_case | most_specific_attribute_name_title_case | most_specific_attribute_name_train_case }
+most_specific_attribute_type = { most_specific_attribute_type_kebab_case | most_specific_attribute_type_lower_camel_case | most_specific_attribute_type_upper_camel_case | most_specific_attribute_type_shouty_kebab_case | most_specific_attribute_type_shouty_snake_case | most_specific_attribute_type_snake_case | most_specific_attribute_type_title_case | most_specific_attribute_type_train_case }
 filter_attribute_name               = { filter_attribute_name_kebab_case | filter_attribute_name_lower_camel_case | filter_attribute_name_upper_camel_case | filter_attribute_name_shouty_kebab_case | filter_attribute_name_shouty_snake_case | filter_attribute_name_snake_case | filter_attribute_name_title_case | filter_attribute_name_train_case }
 filter_attribute_type               = { filter_attribute_type_kebab_case | filter_attribute_type_lower_camel_case | filter_attribute_type_upper_camel_case | filter_attribute_type_shouty_kebab_case | filter_attribute_type_shouty_snake_case | filter_attribute_type_snake_case | filter_attribute_type_title_case | filter_attribute_type_train_case }
 filter2_attribute_name              = { filter2_attribute_name_kebab_case | filter2_attribute_name_lower_camel_case | filter2_attribute_name_upper_camel_case | filter2_attribute_name_shouty_kebab_case | filter2_attribute_name_shouty_snake_case | filter2_attribute_name_snake_case | filter2_attribute_name_title_case | filter2_attribute_name_train_case }
 filter2_attribute_type              = { filter2_attribute_type_kebab_case | filter2_attribute_type_lower_camel_case | filter2_attribute_type_upper_camel_case | filter2_attribute_type_shouty_kebab_case | filter2_attribute_type_shouty_snake_case | filter2_attribute_type_snake_case | filter2_attribute_type_title_case | filter2_attribute_type_train_case }
+composite_key_attribute_name        = { composite_key_attribute_name_kebab_case | composite_key_attribute_name_lower_camel_case | composite_key_attribute_name_upper_camel_case | composite_key_attribute_name_shouty_kebab_case | composite_key_attribute_name_shouty_snake_case | composite_key_attribute_name_snake_case | composite_key_attribute_name_title_case | composite_key_attribute_name_train_case }
+composite_key_attribute_type        = { composite_key_attribute_type_kebab_case | composite_key_attribute_type_lower_camel_case | composite_key_attribute_type_upper_camel_case | composite_key_attribute_type_shouty_kebab_case | composite_key_attribute_type_shouty_snake_case | composite_key_attribute_type_snake_case | composite_key_attribute_type_title_case | composite_key_attribute_type_train_case }
+composite2_key_attribute_name       = { composite2_key_attribute_name_kebab_case | composite2_key_attribute_name_lower_camel_case | composite2_key_attribute_name_upper_camel_case | composite2_key_attribute_name_shouty_kebab_case | composite2_key_attribute_name_shouty_snake_case | composite2_key_attribute_name_snake_case | composite2_key_attribute_name_title_case | composite2_key_attribute_name_train_case }
+composite2_key_attribute_type       = { composite2_key_attribute_type_kebab_case | composite2_key_attribute_type_lower_camel_case | composite2_key_attribute_type_upper_camel_case | composite2_key_attribute_type_shouty_kebab_case | composite2_key_attribute_type_shouty_snake_case | composite2_key_attribute_type_snake_case | composite2_key_attribute_type_title_case | composite2_key_attribute_type_train_case }
 
 attribute_name_kebab_case        = { "attribute-name" }
 attribute_name_lower_camel_case  = { "attributeName" }
@@ -150,23 +180,23 @@ primary_key_snake_case        = { "primary_key" }
 primary_key_title_case        = { "Primary Key" }
 primary_key_train_case        = { "Primary-Key" }
 
-most_specific_attribute_filter_name_kebab_case        = { "most-specific-attribute-filter-name" }
-most_specific_attribute_filter_name_lower_camel_case  = { "mostSpecificAttributeFilterName" }
-most_specific_attribute_filter_name_upper_camel_case  = { "MostSpecificAttributeFilterName" }
-most_specific_attribute_filter_name_shouty_kebab_case = { "MOST-SPECIFIC-ATTRIBUTE-FILTER-NAME" }
-most_specific_attribute_filter_name_shouty_snake_case = { "MOST_SPECIFIC_ATTRIBUTE_FILTER_NAME" }
-most_specific_attribute_filter_name_snake_case        = { "most_specific_attribute_filter_name" }
-most_specific_attribute_filter_name_title_case        = { "Most Specific Attribute Filter Name" }
-most_specific_attribute_filter_name_train_case        = { "Most-Specific-Attribute-Filter-Name" }
+most_specific_attribute_name_kebab_case        = { "most-specific-attribute-name" }
+most_specific_attribute_name_lower_camel_case  = { "mostSpecificAttributeName" }
+most_specific_attribute_name_upper_camel_case  = { "MostSpecificAttributeName" }
+most_specific_attribute_name_shouty_kebab_case = { "MOST-SPECIFIC-ATTRIBUTE-NAME" }
+most_specific_attribute_name_shouty_snake_case = { "MOST_SPECIFIC_ATTRIBUTE_NAME" }
+most_specific_attribute_name_snake_case        = { "most_specific_attribute_name" }
+most_specific_attribute_name_title_case        = { "Most Specific Attribute Name" }
+most_specific_attribute_name_train_case        = { "Most-Specific-Attribute-Name" }
 
-most_specific_attribute_filter_type_kebab_case        = { "most-specific-attribute-filter-type" }
-most_specific_attribute_filter_type_lower_camel_case  = { "mostSpecificAttributeFilterType" }
-most_specific_attribute_filter_type_upper_camel_case  = { "MostSpecificAttributeFilterType" }
-most_specific_attribute_filter_type_shouty_kebab_case = { "MOST-SPECIFIC-ATTRIBUTE-FILTER-TYPE" }
-most_specific_attribute_filter_type_shouty_snake_case = { "MOST_SPECIFIC_ATTRIBUTE_FILTER_TYPE" }
-most_specific_attribute_filter_type_snake_case        = { "most_specific_attribute_filter_type" }
-most_specific_attribute_filter_type_title_case        = { "Most Specific Attribute Filter Type" }
-most_specific_attribute_filter_type_train_case        = { "Most-Specific-Attribute-Filter-Type" }
+most_specific_attribute_type_kebab_case        = { "most-specific-attribute-type" }
+most_specific_attribute_type_lower_camel_case  = { "mostSpecificAttributeType" }
+most_specific_attribute_type_upper_camel_case  = { "MostSpecificAttributeType" }
+most_specific_attribute_type_shouty_kebab_case = { "MOST-SPECIFIC-ATTRIBUTE-TYPE" }
+most_specific_attribute_type_shouty_snake_case = { "MOST_SPECIFIC_ATTRIBUTE_TYPE" }
+most_specific_attribute_type_snake_case        = { "most_specific_attribute_type" }
+most_specific_attribute_type_title_case        = { "Most Specific Attribute Type" }
+most_specific_attribute_type_train_case        = { "Most-Specific-Attribute-Type" }
 
 filter_attribute_name_kebab_case        = { "filter-attribute-name" }
 filter_attribute_name_lower_camel_case  = { "filterAttributeName" }
@@ -203,4 +233,40 @@ filter2_attribute_type_shouty_snake_case = { "FILTER2_ATTRIBUTE_TYPE" }
 filter2_attribute_type_snake_case        = { "filter2_attribute_type" }
 filter2_attribute_type_title_case        = { "Filter2 Attribute Type" }
 filter2_attribute_type_train_case        = { "Filter2-Attribute-Type" }
+
+composite_key_attribute_name_kebab_case        = { "composite-key-attribute-name" }
+composite_key_attribute_name_lower_camel_case  = { "compositeKeyAttributeName" }
+composite_key_attribute_name_upper_camel_case  = { "CompositeKeyAttributeName" }
+composite_key_attribute_name_shouty_kebab_case = { "COMPOSITE-KEY-ATTRIBUTE-NAME" }
+composite_key_attribute_name_shouty_snake_case = { "COMPOSITE_KEY_ATTRIBUTE_NAME" }
+composite_key_attribute_name_snake_case        = { "composite_key_attribute_name" }
+composite_key_attribute_name_title_case        = { "Composite Key Attribute Name" }
+composite_key_attribute_name_train_case        = { "Composite-Key-Attribute-Name" }
+
+composite_key_attribute_type_kebab_case        = { "composite-key-attribute-type" }
+composite_key_attribute_type_lower_camel_case  = { "compositeKeyAttributeType" }
+composite_key_attribute_type_upper_camel_case  = { "CompositeKeyAttributeType" }
+composite_key_attribute_type_shouty_kebab_case = { "COMPOSITE-KEY-ATTRIBUTE-TYPE" }
+composite_key_attribute_type_shouty_snake_case = { "COMPOSITE_KEY_ATTRIBUTE_TYPE" }
+composite_key_attribute_type_snake_case        = { "composite_key_attribute_type" }
+composite_key_attribute_type_title_case        = { "Composite Key Attribute Type" }
+composite_key_attribute_type_train_case        = { "Composite-Key-Attribute-Type" }
+
+composite2_key_attribute_name_kebab_case        = { "composite2-key-attribute-name" }
+composite2_key_attribute_name_lower_camel_case  = { "composite2KeyAttributeName" }
+composite2_key_attribute_name_upper_camel_case  = { "Composite2KeyAttributeName" }
+composite2_key_attribute_name_shouty_kebab_case = { "COMPOSITE2-KEY-ATTRIBUTE-NAME" }
+composite2_key_attribute_name_shouty_snake_case = { "COMPOSITE2_KEY_ATTRIBUTE_NAME" }
+composite2_key_attribute_name_snake_case        = { "composite2_key_attribute_name" }
+composite2_key_attribute_name_title_case        = { "Composite2 Key Attribute Name" }
+composite2_key_attribute_name_train_case        = { "Composite2-Key-Attribute-Name" }
+
+composite2_key_attribute_type_kebab_case        = { "composite2-key-attribute-type" }
+composite2_key_attribute_type_lower_camel_case  = { "composite2KeyAttributeType" }
+composite2_key_attribute_type_upper_camel_case  = { "Composite2KeyAttributeType" }
+composite2_key_attribute_type_shouty_kebab_case = { "COMPOSITE2-KEY-ATTRIBUTE-TYPE" }
+composite2_key_attribute_type_shouty_snake_case = { "COMPOSITE2_KEY_ATTRIBUTE_TYPE" }
+composite2_key_attribute_type_snake_case        = { "composite2_key_attribute_type" }
+composite2_key_attribute_type_title_case        = { "Composite2 Key Attribute Type" }
+composite2_key_attribute_type_train_case        = { "Composite2-Key-Attribute-Type" }
 

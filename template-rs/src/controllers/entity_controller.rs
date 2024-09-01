@@ -75,9 +75,7 @@ pub async fn get_entity_plural(
     else {
         Err(Error::InvalidEntityNameFilter)
     }
-    
-    
-    
+        
 }
 
 pub async fn update_entity_name(
