@@ -94,9 +94,7 @@ pub async fn get_cars(
     else {
         Err(Error::InvalidCarFilter)
     }
-    
-    
-    
+        
 }
 
 pub async fn update_car(

@@ -63,14 +63,14 @@ pub struct EntityNameFilterAttributes {
 impl EntityNameFilterAttributes {
     // for each filter
     //    filter
-    fn is_most_specific_attribute_filter_name_filter(&self) -> bool {
+    fn is_most_specific_attribute_name_filter(&self) -> bool {
         //    for each filter attribute
         self.filter_attribute_name.is_some() && self.filter2_attribute_name.is_some()
         //     end for each filter attribute
     }
     //     end filter
     //     filter
-    fn is_most_specific_attribute_filter_name_filter(&self) -> bool {
+    fn is_most_specific_attribute_name_filter(&self) -> bool {
         //    for each filter attribute
         self.filter_attribute_name.is_some() && self.filter2_attribute_name.is_some()
         //    end for each filter attribute

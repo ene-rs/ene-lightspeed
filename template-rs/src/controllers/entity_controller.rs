@@ -43,10 +43,10 @@ pub async fn get_entity_plural(
 ) -> Result<impl IntoResponse> {
     // for each filter
     // filter
-    if filter_params.is_most_specific_attribute_filter_name_filter() {
+    if filter_params.is_most_specific_attribute_name_filter() {
         services.
                 entity_plural_service
-                .get_entity_name_by_most_specific_attribute_filter_name(
+                .get_entity_name_by_most_specific_attribute_name(
                     // for each filter attribute
                     &filter_params.filter_attribute_name,
                     &filter_params.filter2_attribute_name,
@@ -58,10 +58,10 @@ pub async fn get_entity_plural(
     // end filter
     else
     // filter
-    if filter_params.is_most_specific_attribute_filter_name_filter() {
+    if filter_params.is_most_specific_attribute_name_filter() {
         services.
                 entity_plural_service
-                .is_most_specific_attribute_filter_name_filter(
+                .is_most_specific_attribute_name_filter(
                     // for each filter attribute
                     &filter_params.filter_attribute_name,
                     &filter_params.filter2_attribute_name,
