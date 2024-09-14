@@ -157,5 +157,22 @@ mod tests {
         insta::assert_debug_snapshot!(generated_code);
     }
 
+    #[test]
+    fn test_migration_code_gen() -> anyhow::Result<()> {
+        let migration_test = std::fs::read_to_string("/Users/abdullahsabaaallil/Desktop/ene-lightspeed/template-rs/src/migrations/time_now_entity_name.sql")?;
+        let parsed_template = TemplateParser::parse_template(&migration_test)?;
+        let entities = prepare_entities();
+        let generated_code = parsed_template.generate_code(&entities[0], &entities)?;
+        std::fs::write("test_output/migration_test.sql", generated_code.clone())
+            .map_err(|e| {
+                println!("Error: {:?}", e);
+                e
+            })
+            .unwrap();
+        insta::assert_debug_snapshot!(generated_code);
+
+        Ok(())
+    }
+
 
 }

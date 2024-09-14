@@ -1,0 +1,5 @@
+---
+source: src/codegen/models.rs
+expression: generated_code
+---
+"\nCREATE TABLE IF NOT EXISTS car (\n    id uuid,\n    manufacturer string,\n    model string,\n    name string,\n    owner uuid,\n    year i32\n)\nCREATE INDEX IF NOT EXISTS unique_id_index ON (\n    id\n)\nCREATE INDEX IF NOT EXISTS unique_model_index ON (\n    name,\n    model\n)\nCREATE INDEX IF NOT EXISTS unique_manufacturer_index ON (\n    manufacturer\n)\nCREATE INDEX IF NOT EXISTS unique_year_index ON (\n    year\n)\nCREATE INDEX IF NOT EXISTS unique_owner_index ON (\n    owner\n)\nCREATE UNIQUE INDEX IF NOT EXISTS unique_id_index ON (\n    id\n)\nCREATE UNIQUE INDEX IF NOT EXISTS unique_name_index ON (\n    name\n)"

@@ -1,6 +1,6 @@
 use crate::models::entity::Entity;
 
-use super::{contents::{Content, ContentWithMSFA}, models::StringWithNamingConvention, CodeGen};
+use super::{contents::{Content, ContentWithMSA}, models::StringWithNamingConvention, CodeGen};
 
 
 #[derive(Debug, Clone)]
@@ -58,7 +58,7 @@ impl CompositeKey {
 
 #[derive(Debug, Clone)]
 pub enum CompositeKeyBody {
-    ContentWithMSFA(ContentWithMSFA),
+    ContentWithMSA(ContentWithMSA),
     CompositeKeyAttributeRep(CompositeKeyAttributeRep),
 }
 
@@ -70,8 +70,8 @@ impl CompositeKeyBody {
         entities: &Vec<Entity>,
     ) -> anyhow::Result<String> {
         match self {
-            Self::ContentWithMSFA(content_with_msfa) => {
-                content_with_msfa.generate_code(&composite_key, entity, entities)
+            Self::ContentWithMSA(content_with_msa) => {
+                content_with_msa.generate_code(&composite_key, entity, entities)
             }
             Self::CompositeKeyAttributeRep(composite_key_attribute_rep) => {
                 composite_key_attribute_rep.generate_code(composite_key, entity, entities)
@@ -83,25 +83,25 @@ impl CompositeKeyBody {
 #[derive(Debug, Clone)]
 pub enum CompositeKeyAttributeRep {
     NamesPresent {
-        prefix: Content,
+        prefix: Option<ContentWithMSA>,
         template_attribute_name: StringWithNamingConvention,
-        attributes_separator: Content,
-        suffix: Content,
+        attributes_separator: ContentWithMSA,
+        suffix: Option<ContentWithMSA>,
     },
     NamesAndTypesPresent {
-        prefix: Content,
+        prefix: Option<ContentWithMSA>,
         template_attribute_name: StringWithNamingConvention,
-        attribute_name_and_type_separator: Content,
+        attribute_name_and_type_separator: ContentWithMSA,
         template_attribute_type: StringWithNamingConvention,
-        attributes_separator: Content,
-        suffix: Content,
+        attributes_separator: ContentWithMSA,
+        suffix: Option<ContentWithMSA>
     },
     NamesTwicePresent {
-        prefix: Content,
+        prefix: Option<ContentWithMSA>,
         template_attribute_name: StringWithNamingConvention,
-        attribute_name_twice_separator: Content,
-        attributes_separator: Content,
-        suffix: Content,
+        attribute_name_twice_separator: ContentWithMSA,
+        attributes_separator: ContentWithMSA,
+        suffix: Option<ContentWithMSA>,
     },
 }
 
@@ -121,14 +121,14 @@ impl CompositeKeyAttributeRep {
                 attributes_separator,
                 suffix,
             } => {
-                let prefix = prefix.generate_code(&entity, &entities)?;
+                let prefix = prefix.as_ref().map(|prefix| -> anyhow::Result<String> { prefix.generate_code(&composite_key, &entity, &entities)}).transpose()?.unwrap_or_default();
                 let attributes = composite_key
                     .iter()
                     .map(
                         |(entity_attribute_name, entity_attribute_type)| -> anyhow::Result<String> {
                             let attribute_name_and_type_separator =
                                 attribute_name_and_type_separator
-                                    .generate_code(&entity, &entities)?;
+                                    .generate_code(&composite_key, &entity, &entities)?;
                             let attribute_type = template_attribute_type.to_naming_convention(
                                 &entity_attribute_type.get_attribute_type(&entities)?,
                             );
@@ -143,10 +143,10 @@ impl CompositeKeyAttributeRep {
                     .collect::<anyhow::Result<Vec<String>>>()?
                     .join(
                         attributes_separator
-                            .generate_code(&entity, &entities)?
+                            .generate_code(&composite_key, &entity, &entities)?
                             .as_str(),
                     );
-                let suffix = suffix.generate_code(&entity, &entities)?;
+                let suffix = suffix.as_ref().map(|suffix| -> anyhow::Result<String> { suffix.generate_code(&composite_key, &entity, &entities)}).transpose()?.unwrap_or_default();
                 Ok(format!("{}{}{}", prefix, attributes, suffix))
             }
             Self::NamesPresent {
@@ -155,7 +155,7 @@ impl CompositeKeyAttributeRep {
                 attributes_separator,
                 suffix,
             } => {
-                let prefix = prefix.generate_code(&entity, &entities)?;
+                let prefix = prefix.as_ref().map(|prefix| -> anyhow::Result<String> { prefix.generate_code(&composite_key, &entity, &entities)}).transpose()?.unwrap_or_default();
                 let attributes = composite_key
                     .iter()
                     .map(|(entity_attribute_name, _)| -> anyhow::Result<String> {
@@ -164,10 +164,10 @@ impl CompositeKeyAttributeRep {
                     .collect::<anyhow::Result<Vec<String>>>()?
                     .join(
                         attributes_separator
-                            .generate_code(&entity, &entities)?
+                            .generate_code(&composite_key, &entity, &entities)?
                             .as_str(),
                     );
-                let suffix = suffix.generate_code(&entity, &entities)?;
+                let suffix = suffix.as_ref().map(|suffix| -> anyhow::Result<String> { suffix.generate_code(&composite_key, &entity, &entities)}).transpose()?.unwrap_or_default();
                 Ok(format!("{}{}{}", prefix, attributes, suffix))
             }
             Self::NamesTwicePresent {
@@ -177,24 +177,24 @@ impl CompositeKeyAttributeRep {
                 attributes_separator,
                 suffix,
             } => {
-                let prefix = prefix.generate_code(&entity, &entities)?;
+                let prefix = prefix.as_ref().map(|prefix| -> anyhow::Result<String> { prefix.generate_code(&composite_key, &entity, &entities)}).transpose()?.unwrap_or_default();
                 let attributes = composite_key
                     .iter()
                     .map(|(entity_attribute_name, _)| -> anyhow::Result<String> {
                         Ok(format!(
                             "{}{}{}",
                             template_attribute_name.to_naming_convention(entity_attribute_name),
-                            attribute_name_twice_separator.generate_code(&entity, &entities)?,
+                            attribute_name_twice_separator.generate_code(&composite_key, &entity, &entities)?,
                             template_attribute_name.to_naming_convention(entity_attribute_name)
                         ))
                     })
                     .collect::<anyhow::Result<Vec<String>>>()?
                     .join(
                         attributes_separator
-                            .generate_code(&entity, &entities)?
+                            .generate_code(&composite_key, &entity, &entities)?
                             .as_str(),
                     );
-                let suffix = suffix.generate_code(&entity, &entities)?;
+                let suffix = suffix.as_ref().map(|suffix| -> anyhow::Result<String> { suffix.generate_code(&composite_key, &entity, &entities)}).transpose()?.unwrap_or_default();
                 Ok(format!("{}{}{}", prefix, attributes, suffix))
             }
         }

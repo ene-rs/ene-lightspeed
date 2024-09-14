@@ -9,7 +9,15 @@ static_content    = ${
         end_of_attribute_rep | 
         start_of_filter | 
         end_of_filter | 
-        attribute_name_snake_case |
+        start_of_filter_rep |
+        end_of_filter_rep |
+        start_of_composite_key_attribute_rep |
+        end_of_composite_key_attribute_rep |
+        start_of_composite_key |
+        end_of_composite_key |
+        start_of_composite_key_rep |
+        end_of_composite_key_rep |
+        attribute_name |
         attribute_type |
         attribute2_name |
         attribute2_type |
@@ -19,6 +27,10 @@ static_content    = ${
         filter_attribute_type |
         filter2_attribute_name |
         filter2_attribute_type |
+        composite_key_attribute_name |
+        composite_key_attribute_type |
+        composite2_key_attribute_name |
+        composite2_key_attribute_type |
         entity_name | 
         entity_plural | 
         primary_key
@@ -26,9 +38,10 @@ static_content    = ${
   )+
 }
 
-content = {static_content | entity_name | entity_plural | primary_key}
+content                                   = {static_content | entity_name | entity_plural | primary_key}
+content_with_msa                          = {content | most_specific_attribute_name | most_specific_attribute_type}
 
-comment    = _{ "//" }
+comment    = _{ "//" | "--" | "#" | ";" }
 
 start_of_entity_rep = _{ WHITESPACE* ~ comment ~ " "* ~ "for each entity" }
 end_of_entity_rep   = _{ WHITESPACE* ~ comment ~ " "* ~ "end for each entity" }
@@ -40,63 +53,63 @@ end_of_attribute_rep              = _{ WHITESPACE* ~ comment ~ " "* ~ "end for e
 attribute_name_and_type_separator = ${ content }
 attributes_separator              = ${ content }
 attribute_name_twice_separator    = ${ content }
-attribute_names_and_types_present =  { content ~ attribute_name ~ attribute_name_and_type_separator ~ attribute_type ~ attributes_separator ~ attribute2_name ~ attribute_name_and_type_separator ~ attribute2_type ~ content }
-attribute_names_present           =  { content ~ attribute_name ~ attributes_separator ~ attribute2_name ~ content }
-attribute_names_twice_present     =  { content ~ attribute_name ~ attribute_name_twice_separator ~ attribute_name ~ attributes_separator ~ attribute2_name ~ attribute_name_twice_separator ~ attribute2_name ~ content }
+attribute_names_and_types_present =  { content? ~ attribute_name ~ attribute_name_and_type_separator ~ attribute_type ~ attributes_separator ~ attribute2_name ~ attribute_name_and_type_separator ~ attribute2_type ~ content? }
+attribute_names_present           =  { content? ~ attribute_name ~ attributes_separator ~ attribute2_name ~ content }
+attribute_names_twice_present     =  { content? ~ attribute_name ~ attribute_name_twice_separator ~ attribute_name ~ attributes_separator ~ attribute2_name ~ attribute_name_twice_separator ~ attribute2_name ~ content? }
 attribute_content                 = ${ (!end_of_attribute_rep ~ (attribute_names_and_types_present | attribute_names_present | attribute_names_twice_present)) }
 attribute_rep                     = ${ start_of_attribute_rep ~ attribute_content ~ end_of_attribute_rep }
 
 
-start_of_filter_attribute_rep = _{ WHITESPACE* ~ comment ~ " "* ~ "for each filter attribute" }
-end_of_filter_attribute_rep   = _{ WHITESPACE* ~ comment ~ " "* ~ "end for each filter attribute" }
-content_with_msfa = ${content | most_specific_attribute_name | most_specific_attribute_type}
-filter_attribute_name_and_type_separator = ${ content_with_msfa }
-filter_attributes_separator              = ${ content_with_msfa }
-filter_attribute_names_and_types_present =  ${ content_with_msfa ~ filter_attribute_name ~ filter_attribute_name_and_type_separator ~ filter_attribute_type ~ filter_attributes_separator ~ filter2_attribute_name ~ filter_attribute_name_and_type_separator ~ filter2_attribute_type ~ content_with_msfa }
-filter_attribute_names_present           =  ${ content_with_msfa ~ filter_attribute_name ~ filter_attributes_separator ~ filter2_attribute_name ~ content_with_msfa }
-filter_attribute_name_twice_separator    = ${ content_with_msfa }
-filter_attribute_names_twice_present     =  ${ content_with_msfa ~ filter_attribute_name ~ filter_attribute_name_twice_separator ~ filter_attribute_name ~ filter_attributes_separator ~ filter2_attribute_name ~ filter_attribute_name_twice_separator ~ filter2_attribute_name ~ content_with_msfa }
-filter_attribute_content                 = ${ (!end_of_filter_attribute_rep ~ (filter_attribute_names_and_types_present | filter_attribute_names_present | filter_attribute_names_twice_present)) }
-filter_attribute_rep          = ${ start_of_filter_attribute_rep ~ filter_attribute_content ~ end_of_filter_attribute_rep }
+
+start_of_filter_attribute_rep             = _{ WHITESPACE* ~ comment ~ " "* ~ "for each filter attribute" }
+end_of_filter_attribute_rep               = _{ WHITESPACE* ~ comment ~ " "* ~ "end for each filter attribute" }
+filter_attribute_name_and_type_separator  = ${ content_with_msa }
+filter_attributes_separator               = ${ content_with_msa }
+filter_attribute_names_and_types_present  =  { content_with_msa? ~ filter_attribute_name ~ filter_attribute_name_and_type_separator ~ filter_attribute_type ~ filter_attributes_separator ~ filter2_attribute_name ~ filter_attribute_name_and_type_separator ~ filter2_attribute_type ~ content_with_msa? }
+filter_attribute_names_present            =  { content_with_msa? ~ filter_attribute_name ~ filter_attributes_separator ~ filter2_attribute_name ~ content_with_msa? }
+filter_attribute_name_twice_separator     = ${ content_with_msa }
+filter_attribute_names_twice_present      =  { content_with_msa? ~ filter_attribute_name ~ filter_attribute_name_twice_separator ~ filter_attribute_name ~ filter_attributes_separator ~ filter2_attribute_name ~ filter_attribute_name_twice_separator ~ filter2_attribute_name ~ content_with_msa? }
+filter_attribute_content                  = ${ (!end_of_filter_attribute_rep ~ (filter_attribute_names_and_types_present | filter_attribute_names_present | filter_attribute_names_twice_present)) }
+filter_attribute_rep                      = ${ start_of_filter_attribute_rep ~ filter_attribute_content ~ end_of_filter_attribute_rep }
 
 
 start_of_filter = _{ WHITESPACE* ~ comment ~ " "* ~ "filter" }
 end_of_filter   = _{ WHITESPACE* ~ comment ~ " "* ~ "end filter" }
-filter_body     = ${ (!end_of_filter ~ (content_with_msfa | filter_attribute_rep)) }
+filter_body     = ${ (!end_of_filter ~ (content_with_msa | filter_attribute_rep)) }
 filter          = ${ start_of_filter ~ filter_body+ ~ end_of_filter }
 
 start_of_filter_rep = _{ WHITESPACE* ~ comment ~ " "* ~ "for each filter" }
 end_of_filter_rep   = _{ WHITESPACE* ~ comment ~ " "* ~ "end for each filter" }
 filter_separator    = ${ content }
 consecutive_filters = ${ filter ~ filter }
-separated_filters = ${ filter ~ filter_separator ~ filter }
+separated_filters   = ${ filter ~ filter_separator ~ filter }
 filter_content      = ${ (!end_of_filter_rep ~ (consecutive_filters | separated_filters)) }
 filter_rep          = ${ start_of_filter_rep ~ filter_content ~ end_of_filter_rep }
 
 
-start_of_composite_key_attribute_rep = _{ WHITESPACE* ~ comment ~ " "* ~ "for each composite key attribute" }
-end_of_composite_key_attribute_rep   = _{ WHITESPACE* ~ comment ~ " "* ~ "end for each composite key attribute" }
-composite_key_attribute_name_and_type_separator = ${ content_with_msfa }
-composite_key_attributes_separator              = ${ content_with_msfa }
-composite_key_attribute_names_and_types_present =  ${ content_with_msfa ~ composite_key_attribute_name ~ composite_key_attribute_name_and_type_separator ~ composite_key_attribute_type ~ composite_key_attributes_separator ~ composite2_key_attribute_name ~ composite_key_attribute_name_and_type_separator ~ composite2_key_attribute_type ~ content_with_msfa }
-composite_key_attribute_names_present           =  ${ content_with_msfa ~ composite_key_attribute_name ~ composite_key_attributes_separator ~ filter2_attribute_name ~ content_with_msfa }
-composite_key_attribute_name_twice_separator    = ${ content_with_msfa }
-composite_key_attribute_names_twice_present     =  ${ content_with_msfa ~ composite_key_attribute_name ~ composite_key_attribute_name_twice_separator ~ composite_key_attribute_name ~ composite_key_attributes_separator ~ composite2_key_attribute_name ~ composite_key_attribute_name_twice_separator ~ composite2_key_attribute_name ~ content_with_msfa }
+start_of_composite_key_attribute_rep            = _{ WHITESPACE* ~ comment ~ " "* ~ "for each composite key attribute" }
+end_of_composite_key_attribute_rep              = _{ WHITESPACE* ~ comment ~ " "* ~ "end for each composite key attribute" }
+composite_key_attribute_name_and_type_separator = ${ content_with_msa }
+composite_key_attributes_separator              = ${ content_with_msa }
+composite_key_attribute_names_and_types_present = ${ content_with_msa? ~ composite_key_attribute_name ~ composite_key_attribute_name_and_type_separator ~ composite_key_attribute_type ~ composite_key_attributes_separator ~ composite2_key_attribute_name ~ composite_key_attribute_name_and_type_separator ~ composite2_key_attribute_type ~ content_with_msa? }
+composite_key_attribute_names_present           = ${ content_with_msa? ~ composite_key_attribute_name ~ composite_key_attributes_separator ~ composite2_key_attribute_name ~ content_with_msa? }
+composite_key_attribute_name_twice_separator    = ${ content_with_msa }
+composite_key_attribute_names_twice_present     = ${ content_with_msa? ~ composite_key_attribute_name ~ composite_key_attribute_name_twice_separator ~ composite_key_attribute_name ~ composite_key_attributes_separator ~ composite2_key_attribute_name ~ composite_key_attribute_name_twice_separator ~ composite2_key_attribute_name ~ content_with_msa? }
 composite_key_attribute_content                 = ${ (!end_of_composite_key_attribute_rep ~ (composite_key_attribute_names_and_types_present | composite_key_attribute_names_present | composite_key_attribute_names_twice_present)) }
-composite_key_attribute_rep          = ${ start_of_composite_key_attribute_rep ~ composite_key_attribute_content ~ end_of_composite_key_attribute_rep }
+composite_key_attribute_rep                     = ${ start_of_composite_key_attribute_rep ~ composite_key_attribute_content ~ end_of_composite_key_attribute_rep }
 
-start_of_composite_key = _{ WHITESPACE* ~ comment ~ " "* ~ "composite key" }
-end_of_composite_key   = _{ WHITESPACE* ~ comment ~ " "* ~ "end composite key" }
-composite_key_body  = ${ (!end_of_composite_key ~ (content_with_msfa | composite_key_attribute_rep)) }
-composite_key          = ${ start_of_composite_key ~ composite_key_body+ ~ end_of_composite_key }
+start_of_composite_key  = _{ WHITESPACE* ~ comment ~ " "* ~ "composite key" }
+end_of_composite_key    = _{ WHITESPACE* ~ comment ~ " "* ~ "end composite key" }
+composite_key_body      = ${ (!end_of_composite_key ~ (content_with_msa | composite_key_attribute_rep)) }
+composite_key           = ${ start_of_composite_key ~ composite_key_body+ ~ end_of_composite_key }
 
-start_of_composite_key_rep = _{ WHITESPACE* ~ comment ~ " "* ~ "for each composite key" }
-end_of_composite_key_rep   = _{ WHITESPACE* ~ comment ~ " "* ~ "end for each composite key" }
-composite_key_separator    = ${ content }
-consecutive_composite_keys = ${ composite_key ~ composite_key }
-separated_composite_keys = ${ composite_key ~ composite_key_separator ~ composite_key }
-composite_key_content      = ${ (!end_of_composite_key_rep ~ (consecutive_composite_keys | separated_composite_keys)) }
-composite_key_rep          = ${ start_of_composite_key_rep ~ composite_key_content ~ end_of_composite_key_rep }
+start_of_composite_key_rep  = _{ WHITESPACE* ~ comment ~ " "* ~ "for each composite key" }
+end_of_composite_key_rep    = _{ WHITESPACE* ~ comment ~ " "* ~ "end for each composite key" }
+composite_key_separator     = ${ content }
+consecutive_composite_keys  = ${ composite_key ~ composite_key }
+separated_composite_keys    = ${ composite_key ~ composite_key_separator ~ composite_key }
+composite_key_content       = ${ (!end_of_composite_key_rep ~ (consecutive_composite_keys | separated_composite_keys)) }
+composite_key_rep           = ${ start_of_composite_key_rep ~ composite_key_content ~ end_of_composite_key_rep }
 
 
 attribute_name                      = { attribute_name_kebab_case | attribute_name_lower_camel_case | attribute_name_upper_camel_case | attribute_name_shouty_kebab_case | attribute_name_shouty_snake_case | attribute_name_snake_case | attribute_name_title_case | attribute_name_train_case }
@@ -104,10 +117,10 @@ attribute_type                      = { attribute_type_kebab_case | attribute_ty
 attribute2_name                     = { attribute2_name_kebab_case | attribute2_name_lower_camel_case | attribute2_name_upper_camel_case | attribute2_name_shouty_kebab_case | attribute2_name_shouty_snake_case | attribute2_name_snake_case | attribute2_name_title_case | attribute2_name_train_case }
 attribute2_type                     = { attribute2_type_kebab_case | attribute2_type_lower_camel_case | attribute2_type_upper_camel_case | attribute2_type_shouty_kebab_case | attribute2_type_shouty_snake_case | attribute2_type_snake_case | attribute2_type_title_case | attribute2_type_train_case }
 entity_name                         = { entity_name_kebab_case | entity_name_lower_camel_case | entity_name_upper_camel_case | entity_name_shouty_kebab_case | entity_name_shouty_snake_case | entity_name_snake_case | entity_name_title_case | entity_name_train_case }
-entity_plural                  = { entity_plural_kebab_case | entity_plural_lower_camel_case | entity_plural_upper_camel_case | entity_plural_shouty_kebab_case | entity_plural_shouty_snake_case | entity_plural_snake_case | entity_plural_title_case | entity_plural_train_case }
+entity_plural                       = { entity_plural_kebab_case | entity_plural_lower_camel_case | entity_plural_upper_camel_case | entity_plural_shouty_kebab_case | entity_plural_shouty_snake_case | entity_plural_snake_case | entity_plural_title_case | entity_plural_train_case }
 primary_key                         = { primary_key_kebab_case | primary_key_lower_camel_case | primary_key_upper_camel_case | primary_key_shouty_kebab_case | primary_key_shouty_snake_case | primary_key_snake_case | primary_key_title_case | primary_key_train_case }
-most_specific_attribute_name = { most_specific_attribute_name_kebab_case | most_specific_attribute_name_lower_camel_case | most_specific_attribute_name_upper_camel_case | most_specific_attribute_name_shouty_kebab_case | most_specific_attribute_name_shouty_snake_case | most_specific_attribute_name_snake_case | most_specific_attribute_name_title_case | most_specific_attribute_name_train_case }
-most_specific_attribute_type = { most_specific_attribute_type_kebab_case | most_specific_attribute_type_lower_camel_case | most_specific_attribute_type_upper_camel_case | most_specific_attribute_type_shouty_kebab_case | most_specific_attribute_type_shouty_snake_case | most_specific_attribute_type_snake_case | most_specific_attribute_type_title_case | most_specific_attribute_type_train_case }
+most_specific_attribute_name        = { most_specific_attribute_name_kebab_case | most_specific_attribute_name_lower_camel_case | most_specific_attribute_name_upper_camel_case | most_specific_attribute_name_shouty_kebab_case | most_specific_attribute_name_shouty_snake_case | most_specific_attribute_name_snake_case | most_specific_attribute_name_title_case | most_specific_attribute_name_train_case }
+most_specific_attribute_type        = { most_specific_attribute_type_kebab_case | most_specific_attribute_type_lower_camel_case | most_specific_attribute_type_upper_camel_case | most_specific_attribute_type_shouty_kebab_case | most_specific_attribute_type_shouty_snake_case | most_specific_attribute_type_snake_case | most_specific_attribute_type_title_case | most_specific_attribute_type_train_case }
 filter_attribute_name               = { filter_attribute_name_kebab_case | filter_attribute_name_lower_camel_case | filter_attribute_name_upper_camel_case | filter_attribute_name_shouty_kebab_case | filter_attribute_name_shouty_snake_case | filter_attribute_name_snake_case | filter_attribute_name_title_case | filter_attribute_name_train_case }
 filter_attribute_type               = { filter_attribute_type_kebab_case | filter_attribute_type_lower_camel_case | filter_attribute_type_upper_camel_case | filter_attribute_type_shouty_kebab_case | filter_attribute_type_shouty_snake_case | filter_attribute_type_snake_case | filter_attribute_type_title_case | filter_attribute_type_train_case }
 filter2_attribute_name              = { filter2_attribute_name_kebab_case | filter2_attribute_name_lower_camel_case | filter2_attribute_name_upper_camel_case | filter2_attribute_name_shouty_kebab_case | filter2_attribute_name_shouty_snake_case | filter2_attribute_name_snake_case | filter2_attribute_name_title_case | filter2_attribute_name_train_case }

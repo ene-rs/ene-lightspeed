@@ -6,25 +6,25 @@ use super::{contents::Content, models::StringWithNamingConvention, CodeGen};
 #[derive(Debug, Clone)]
 pub enum AttributeRep {
     NamesAndTypesPresent {
-        prefix: Content,
+        prefix: Option<Content>,
         template_attribute_name: StringWithNamingConvention,
         attribute_name_and_type_separator: Content,
         template_attribute_type: StringWithNamingConvention,
         attributes_separator: Content,
-        suffix: Content,
+        suffix: Option<Content>,
     },
     NamesPresent {
-        prefix: Content,
+        prefix: Option<Content>,
         template_attribute_name: StringWithNamingConvention,
         attributes_separator: Content,
-        suffix: Content,
+        suffix: Option<Content>,
     },
     NamesTwicePresent {
-        prefix: Content,
+        prefix: Option<Content>,
         template_attribute_name: StringWithNamingConvention,
         attribute_name_twice_separator: Content,
         attributes_separator: Content,
-        suffix: Content,
+        suffix: Option<Content>,
     },
 }
 
@@ -39,7 +39,7 @@ impl CodeGen for AttributeRep {
                 attributes_separator,
                 suffix,
             } => {
-                let prefix = prefix.generate_code(entity, entities)?;
+                let prefix = prefix.as_ref().map(|prefix| -> anyhow::Result<String> { prefix.generate_code(entity, entities)}).transpose()?.unwrap_or_default();
                 let attributes = entity
                     .attributes
                     .iter()
@@ -65,7 +65,7 @@ impl CodeGen for AttributeRep {
                             .generate_code(entity, entities)?
                             .as_str(),
                     );
-                let suffix = suffix.generate_code(entity, entities)?;
+                let suffix = suffix.as_ref().map(|suffix| -> anyhow::Result<String> { suffix.generate_code(entity, entities)}).transpose()?.unwrap_or_default();
                 Ok(format!("{}{}{}", prefix, attributes, suffix))
             }
             Self::NamesPresent {
@@ -74,7 +74,7 @@ impl CodeGen for AttributeRep {
                 attributes_separator,
                 suffix,
             } => {
-                let prefix = prefix.generate_code(entity, entities)?;
+                let prefix = prefix.as_ref().map(|prefix| -> anyhow::Result<String> { prefix.generate_code(entity, entities)}).transpose()?.unwrap_or_default();
                 let attributes = entity
                     .attributes
                     .iter()
@@ -87,7 +87,7 @@ impl CodeGen for AttributeRep {
                             .generate_code(entity, entities)?
                             .as_str(),
                     );
-                let suffix = suffix.generate_code(entity, entities)?;
+                let suffix = suffix.as_ref().map(|suffix| -> anyhow::Result<String> { suffix.generate_code(entity, entities)}).transpose()?.unwrap_or_default();
                 Ok(format!("{}{}{}", prefix, attributes, suffix))
             }
             Self::NamesTwicePresent {
@@ -97,7 +97,7 @@ impl CodeGen for AttributeRep {
                 attributes_separator,
                 suffix,
             } => {
-                let prefix = prefix.generate_code(entity, entities)?;
+                let prefix = prefix.as_ref().map(|prefix| -> anyhow::Result<String> { prefix.generate_code(entity, entities)}).transpose()?.unwrap_or_default();
                 let attributes = entity
                     .attributes
                     .iter()
@@ -115,7 +115,7 @@ impl CodeGen for AttributeRep {
                             .generate_code(entity, entities)?
                             .as_str(),
                     );
-                let suffix = suffix.generate_code(entity, entities)?;
+                let suffix = suffix.as_ref().map(|suffix| -> anyhow::Result<String> { suffix.generate_code(entity, entities)}).transpose()?.unwrap_or_default();
                 Ok(format!("{}{}{}", prefix, attributes, suffix))
             }
         }

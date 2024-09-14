@@ -12,14 +12,19 @@ impl TemplateParser {
         match attribute_pair.as_rule() {
             Rule::attribute_names_and_types_present => {
                 let mut inner_pairs = attribute_pair.into_inner();
-                let prefix = Self::parse_content(
-                    inner_pairs
-                        .next()
-                        .ok_or(anyhow!("{ERROR_MSG}"))?
-                        .into_inner()
-                        .next()
-                        .ok_or(anyhow!("{ERROR_MSG}"))?,
-                )?;
+                let next_peek = inner_pairs.peek().ok_or(anyhow!("{ERROR_MSG}"))?;
+                let prefix = if next_peek.as_rule() == Rule::content {
+                    Some(Self::parse_content(
+                        inner_pairs
+                            .next()
+                            .ok_or(anyhow!("{ERROR_MSG}"))?
+                            .into_inner()
+                            .next()
+                            .ok_or(anyhow!("{ERROR_MSG}"))?,
+                    )?)
+                } else {
+                    None
+                };
                 let attribute_name = Self::parse_string_with_naming_convention(
                     &inner_pairs
                         .next()
@@ -62,14 +67,24 @@ impl TemplateParser {
                 let _attribute2_name_separator =
                     inner_pairs.next().ok_or(anyhow!("{ERROR_MSG}"))?;
                 let _attribute2_type = inner_pairs.next().ok_or(anyhow!("{ERROR_MSG}"))?;
-                let suffix = Self::parse_content(
-                    inner_pairs
-                        .next()
-                        .ok_or(anyhow!("{ERROR_MSG}"))?
-                        .into_inner()
-                        .next()
-                        .ok_or(anyhow!("{ERROR_MSG}"))?,
-                )?;
+                let next_peek = inner_pairs.peek();
+                let suffix = 
+                if let Some(next_peek) = next_peek {
+                    if next_peek.as_rule() == Rule::content {
+                        Some(Self::parse_content(
+                            inner_pairs
+                                .next()
+                                .ok_or(anyhow!("{ERROR_MSG}"))?
+                                .into_inner()
+                                .next()
+                                .ok_or(anyhow!("{ERROR_MSG}"))?,
+                        )?)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
                 Ok(AttributeRep::NamesAndTypesPresent {
                     prefix,
                     template_attribute_name: attribute_name,
@@ -81,14 +96,19 @@ impl TemplateParser {
             }
             Rule::attribute_names_twice_present => {
                 let mut inner_pairs = attribute_pair.into_inner();
-                let prefix = Self::parse_content(
-                    inner_pairs
-                        .next()
-                        .ok_or(anyhow!("{ERROR_MSG}"))?
-                        .into_inner()
-                        .next()
-                        .ok_or(anyhow!("{ERROR_MSG}"))?,
-                )?;
+                let next_peek = inner_pairs.peek().ok_or(anyhow!("{ERROR_MSG}"))?;
+                let prefix = if next_peek.as_rule() == Rule::content {
+                    Some(Self::parse_content(
+                        inner_pairs
+                            .next()
+                            .ok_or(anyhow!("{ERROR_MSG}"))?
+                            .into_inner()
+                            .next()
+                            .ok_or(anyhow!("{ERROR_MSG}"))?,
+                    )?)
+                } else {
+                    None
+                };
                 let attribute_name = Self::parse_string_with_naming_convention(
                     &inner_pairs
                         .next()
@@ -124,14 +144,23 @@ impl TemplateParser {
                 let _attribute2_name_separator =
                     inner_pairs.next().ok_or(anyhow!("{ERROR_MSG}"))?;
                 let _attribute2_name = inner_pairs.next().ok_or(anyhow!("{ERROR_MSG}"))?;
-                let suffix = Self::parse_content(
-                    inner_pairs
-                        .next()
-                        .ok_or(anyhow!("{ERROR_MSG}"))?
-                        .into_inner()
-                        .next()
-                        .ok_or(anyhow!("{ERROR_MSG}"))?,
-                )?;
+                let next_peek = inner_pairs.peek();
+                let suffix = if let Some(next_peek) = next_peek {
+                    if next_peek.as_rule() == Rule::content {
+                        Some(Self::parse_content(
+                            inner_pairs
+                                .next()
+                                .ok_or(anyhow!("{ERROR_MSG}"))?
+                                .into_inner()
+                                .next()
+                                .ok_or(anyhow!("{ERROR_MSG}"))?,
+                        )?)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
                 Ok(AttributeRep::NamesTwicePresent {
                     prefix,
                     template_attribute_name: attribute_name,
@@ -143,28 +172,42 @@ impl TemplateParser {
 
             Rule::attribute_names_present => {
                 let mut inner_pairs = attribute_pair.into_inner();
-                let prefix = Self::parse_content(
-                    inner_pairs
-                        .next()
-                        .ok_or(anyhow!("{ERROR_MSG}"))?
-                        .into_inner()
-                        .next()
-                        .ok_or(anyhow!("{ERROR_MSG}"))?,
-                )?;
+                let next_peek = inner_pairs.peek().ok_or(anyhow!("{ERROR_MSG}"))?;
+                let prefix = if next_peek.as_rule() == Rule::content {
+                    Some(Self::parse_content(
+                        inner_pairs
+                            .next()
+                            .ok_or(anyhow!("{ERROR_MSG}"))?
+                            .into_inner()
+                            .next()
+                            .ok_or(anyhow!("{ERROR_MSG}"))?,
+                    )?)
+                } else {
+                    None
+                };
                 let attribute_name = Self::parse_string_with_naming_convention(
                     &inner_pairs.next().ok_or(anyhow!("{ERROR_MSG}"))?,
                 )?;
                 let attributes_separator =
                     Self::parse_content(inner_pairs.next().ok_or(anyhow!("{ERROR_MSG}"))?)?;
                 let _attribute2_name = inner_pairs.next().ok_or(anyhow!("{ERROR_MSG}"))?;
-                let suffix = Self::parse_content(
-                    inner_pairs
-                        .next()
-                        .ok_or(anyhow!("{ERROR_MSG}"))?
-                        .into_inner()
-                        .next()
-                        .ok_or(anyhow!("{ERROR_MSG}"))?,
-                )?;
+                let next_peek = inner_pairs.peek();
+                let suffix = if let Some(next_peek) = next_peek {
+                    if next_peek.as_rule() == Rule::content {
+                        Some(Self::parse_content(
+                            inner_pairs
+                                .next()
+                                .ok_or(anyhow!("{ERROR_MSG}"))?
+                                .into_inner()
+                                .next()
+                                .ok_or(anyhow!("{ERROR_MSG}"))?,
+                        )?)
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                };
                 Ok(AttributeRep::NamesPresent {
                     prefix,
                     template_attribute_name: attribute_name,

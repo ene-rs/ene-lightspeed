@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS entity_name (
 
 -- for each filter
 --      filter
-CREATE INDEX IF NOT EXISTS unique_most_specific_attribute_filter_name_index ON (
+CREATE INDEX IF NOT EXISTS unique_most_specific_attribute_name_index ON (
     --          for each filter attribute
     filter_attribute_name,
     filter2_attribute_name
@@ -16,7 +16,7 @@ CREATE INDEX IF NOT EXISTS unique_most_specific_attribute_filter_name_index ON (
 )
 --      end filter
 --      filter
-CREATE INDEX IF NOT EXISTS most_specific_attribute_filter_name_index ON (
+CREATE INDEX IF NOT EXISTS most_specific_attribute_name_index ON (
     --          for each filter attribute
     filter_attribute_name,
     filter2_attribute_name
@@ -43,3 +43,5 @@ CREATE INDEX IF NOT EXISTS most_specific_attribute_name_index ON (
 )
 --      end composite key
 -- end for each composite key
+
+-- end for each entity

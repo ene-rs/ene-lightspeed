@@ -49,13 +49,13 @@ impl CodeGen for EntityTemplateContent {
 
 
 #[derive(Debug, Clone)]
-pub enum ContentWithMSFA {
+pub enum ContentWithMSA {
     Content(Content),
     MostSpecificFilterAttributeName(StringWithNamingConvention),
     MostSpecificFilterAttributeType(StringWithNamingConvention),
 }
 
-impl ContentWithMSFA {
+impl ContentWithMSA {
     pub fn generate_code<T: RetrieveMostSpecificAttribute>(
         &self,
         filter_by_attributes: &T,

@@ -1,29 +1,29 @@
 use pest::iterators::Pair;
 
-use crate::codegen::contents::{Content, ContentWithMSFA};
+use crate::codegen::contents::{Content, ContentWithMSA};
 
 use super::template_parser::{Rule, TemplateParser};
 use anyhow::{anyhow, bail};
 use crate::parsers::template_parser::ERROR_MSG;
 
 impl TemplateParser {
-    pub fn parse_content_with_msfa(
-        content_with_msfa_pair: Pair<Rule>,
-    ) -> anyhow::Result<ContentWithMSFA> {
-        match content_with_msfa_pair.as_rule() {
+    pub fn parse_content_with_msa(
+        content_with_msa_pair: Pair<Rule>,
+    ) -> anyhow::Result<ContentWithMSA> {
+        match content_with_msa_pair.as_rule() {
             Rule::content => {
-                let content_pair = content_with_msfa_pair.into_inner().next().ok_or(anyhow!("{ERROR_MSG}"))?;
-                Ok(ContentWithMSFA::Content(Self::parse_content(content_pair)?))
+                let content_pair = content_with_msa_pair.into_inner().next().ok_or(anyhow!("{ERROR_MSG}"))?;
+                Ok(ContentWithMSA::Content(Self::parse_content(content_pair)?))
             }
             Rule::most_specific_attribute_name => {
-                let most_specific_attribute_filter_name_pair = content_with_msfa_pair.into_inner().next().ok_or(anyhow!("{ERROR_MSG}"))?;
-                Ok(ContentWithMSFA::MostSpecificFilterAttributeName(Self::parse_string_with_naming_convention(&most_specific_attribute_filter_name_pair)?))
+                let most_specific_attribute_filter_name_pair = content_with_msa_pair.into_inner().next().ok_or(anyhow!("{ERROR_MSG}"))?;
+                Ok(ContentWithMSA::MostSpecificFilterAttributeName(Self::parse_string_with_naming_convention(&most_specific_attribute_filter_name_pair)?))
             }
             Rule::most_specific_attribute_type => {
-                let most_specific_attribute_filter_type_pair = content_with_msfa_pair.into_inner().next().ok_or(anyhow!("{ERROR_MSG}"))?;
-                Ok(ContentWithMSFA::MostSpecificFilterAttributeType(Self::parse_string_with_naming_convention(&most_specific_attribute_filter_type_pair)?))
+                let most_specific_attribute_filter_type_pair = content_with_msa_pair.into_inner().next().ok_or(anyhow!("{ERROR_MSG}"))?;
+                Ok(ContentWithMSA::MostSpecificFilterAttributeType(Self::parse_string_with_naming_convention(&most_specific_attribute_filter_type_pair)?))
             }
-            _ => bail!("Unexpected rule: {:?} cannot be converted to a content with most specific filter attribute", content_with_msfa_pair)
+            _ => bail!("Unexpected rule: {:?} cannot be converted to a content with most specific filter attribute", content_with_msa_pair)
         }
     }
 
